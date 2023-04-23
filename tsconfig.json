@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "types": ["webpack-env"],
+        "outDir": "./dist/",
+        "module": "commonjs",
+        "target": "es5",
+        "jsx": "react-jsxdev",
+        "lib": [
+            "es2017",
+            "dom",
+            "webworker",
+            "es6",
+            "DOM"
+        ],
+        "resolveJsonModule": true,
+        "alwaysStrict": true,
+        "esModuleInterop": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "allowJs": true,
+    },
+    "include": [
+        "./src/**/*.ts",
+        "./src/**/*.tsx",
+        "node_modules/@date-io/type", "src/containers/my-profile/myProfile.spec.txs"
+]
+}
