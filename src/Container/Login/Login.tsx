@@ -14,12 +14,12 @@ import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { ButtonBase } from "@mui/material";
-
+import {UserDto} from 't-chatsss-interface'
 export interface IState {
   email: string;
   pass: string;
   loading: boolean;
-
+  user: UserDto
 }
 
 export class Login extends React.Component<IPageProps, IState> {
@@ -29,6 +29,7 @@ export class Login extends React.Component<IPageProps, IState> {
       email: "",
       pass: "",
       loading: false,
+      user: UserDto.createObj()
     }
   }
   componentDidMount() {
