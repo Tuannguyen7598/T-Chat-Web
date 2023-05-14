@@ -25,8 +25,6 @@ class AppRoutesRaw extends React.Component<IPageProps> {
         super(props);
     }
     componentDidMount() {
-        console.log("heloo");
-
 
     }
     render(): JSX.Element {
@@ -39,7 +37,7 @@ class AppRoutesRaw extends React.Component<IPageProps> {
                         <Route exact path={ClientRouter.login} component={Login} />
                     </Switch>
                 </Router>
-                {this.props.appState.isLogin === 'true' &&
+             
                     <Router history={this.props.history}>
                         <Switch>
                             <Route exact path={ClientRouter.message} component={Message} />
@@ -48,7 +46,7 @@ class AppRoutesRaw extends React.Component<IPageProps> {
                             <Route exact path={ClientRouter.live} component={Live} />
                         </Switch>
                     </Router>
-                }
+                
             </>
 
 

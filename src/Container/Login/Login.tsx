@@ -1,31 +1,34 @@
-import React from "react";
-import { IPageProps } from "../../ContainerBase";
-import  Axios  from "axios";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { UserActonTypeAccount, UserDto } from "../../type";
+import Axios from "axios";
+import React from "react";
+import { MyAlert } from '../../Component/Alert';
+import { IPageProps } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from "../../Routers";
+import { UserActonTypeAccount, UserDto } from "../../type";
 
 
 export interface IState {
+  isLoginFalse: boolean
   user: UserDto
+  isEmpty: boolean
 }
 
 export class Login extends React.Component<IPageProps, IState> {
   constructor(props: IPageProps) {
     super(props)
     this.state = {
-      user: UserDto.createObj()
+      user: UserDto.createObj(),
+      isLoginFalse: false,
+      isEmpty: false
     }
   }
   componentDidMount() {
@@ -33,15 +36,6 @@ export class Login extends React.Component<IPageProps, IState> {
   }
 
   render() {
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      const data = new FormData(event.currentTarget);
-      console.log({
-        email: data.get('email'),
-        password: data.get('password'),
-      });
-    };
-   
     return (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
@@ -61,15 +55,18 @@ export class Login extends React.Component<IPageProps, IState> {
           <Typography typography="h3">
             Welcome to T-Chat
           </Typography>
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+          <Box component="form" noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
               fullWidth
               id="email"
-              label={<Typography typography='h3'>Email Address</Typography>}
+              error={this.state.isEmpty}
+              label={<Typography typography='h3'>User name</Typography>}
               name="email"
               onChange={(e) => this.setState({
-                user:{
+                isLoginFalse: false,
+                isEmpty: false,
+                user: {
                   ...this.state.user,
                   username: e.currentTarget.value
                 }
@@ -82,21 +79,36 @@ export class Login extends React.Component<IPageProps, IState> {
               margin="normal"
               fullWidth
               name="password"
+              error={this.state.isEmpty}
               label={<Typography typography='h3'>Password</Typography>}
               type="password"
               value={this.state.user.credentials.password}
               onChange={(e) => this.setState({
+                isLoginFalse: false,
+                isEmpty: false,
                 user: {
                   ...this.state.user,
-                  credentials:{
-                    password:e.currentTarget.value,
-                    salt:""
+                  credentials: {
+                    password: e.currentTarget.value,
+                    salt: ""
                   }
                 }
               })}
               id="password"
               autoComplete="current-password"
             />
+            {this.state.isLoginFalse &&
+              <MyAlert
+                severity='error'
+                children='User namr or password false, please again'
+              />
+            }
+            {this.state.isEmpty &&
+              <MyAlert
+                severity='error'
+                children='User name or password is not empty'
+              />
+            }
             <Button
               fullWidth
               variant="contained"
@@ -122,19 +134,26 @@ export class Login extends React.Component<IPageProps, IState> {
       </Container>
 
     )
-    
+
   }
-  private onSignin =async () =>{
+  private onSignin = async () => {
     const user = this.state.user
+
     if (user.username === "" || user.credentials.password === "") {
+      this.setState({
+        isEmpty: true
+      })
       return
     }
-   const login = await Axios.post(ServerRouter.login,user)
-   if (login.data === UserActonTypeAccount.loginFalse) {
-    return
-   }
-   this.props.history.push(ClientRouter.message)
-   console.log("login true");
-   
+    const login = await Axios.post(ServerRouter.login, user)
+    if (login.data === UserActonTypeAccount.loginFalse) {
+      this.setState({
+        isLoginFalse: true
+      })
+      return
+    }
+    this.props.history.push(ClientRouter.message)
+
+
   }
 }

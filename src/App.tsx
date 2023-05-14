@@ -12,6 +12,7 @@ import { jsx } from "@emotion/react";
 
 export const App = (props: { baseURL: string; initialState: AppState }):jsx.JSX.Element => {
     Axios.defaults.baseURL = props.baseURL;
+
     const [appState, dispatch] = React.useReducer(reducer, props.initialState);
 
     return (
