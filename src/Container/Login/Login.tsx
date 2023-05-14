@@ -1,6 +1,6 @@
 import React from "react";
 import { IPageProps } from "../../ContainerBase";
-
+import  Axios  from "axios";
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -13,12 +13,11 @@ import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { ButtonBase } from "@mui/material";
-import {UserDto} from 't-chatsss-interface'
+import { UserActonTypeAccount, UserDto } from "../../type";
+import { ClientRouter, ServerRouter } from "../../Routers";
+
+
 export interface IState {
-  email: string;
-  pass: string;
-  loading: boolean;
   user: UserDto
 }
 
@@ -26,9 +25,6 @@ export class Login extends React.Component<IPageProps, IState> {
   constructor(props: IPageProps) {
     super(props)
     this.state = {
-      email: "",
-      pass: "",
-      loading: false,
       user: UserDto.createObj()
     }
   }
@@ -45,6 +41,7 @@ export class Login extends React.Component<IPageProps, IState> {
         password: data.get('password'),
       });
     };
+   
     return (
       <Container component="main" maxWidth="xs">
         <CssBaseline />
@@ -67,32 +64,44 @@ export class Login extends React.Component<IPageProps, IState> {
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
-              required
               fullWidth
               id="email"
               label={<Typography typography='h3'>Email Address</Typography>}
               name="email"
+              onChange={(e) => this.setState({
+                user:{
+                  ...this.state.user,
+                  username: e.currentTarget.value
+                }
+              })}
+              value={this.state.user.username}
               autoComplete="email"
               autoFocus
             />
             <TextField
               margin="normal"
-              required
               fullWidth
               name="password"
               label={<Typography typography='h3'>Password</Typography>}
               type="password"
+              value={this.state.user.credentials.password}
+              onChange={(e) => this.setState({
+                user: {
+                  ...this.state.user,
+                  credentials:{
+                    password:e.currentTarget.value,
+                    salt:""
+                  }
+                }
+              })}
               id="password"
               autoComplete="current-password"
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label={<Typography typography='h4'>Remember Me</Typography>}
             />
             <Button
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              sx={{ mt: 1, mb: 2 }}
+              onClick={(e) => this.onSignin()}
             >
               sign in
             </Button>
@@ -113,5 +122,19 @@ export class Login extends React.Component<IPageProps, IState> {
       </Container>
 
     )
+    
+  }
+  private onSignin =async () =>{
+    const user = this.state.user
+    if (user.username === "" || user.credentials.password === "") {
+      return
+    }
+   const login = await Axios.post(ServerRouter.login,user)
+   if (login.data === UserActonTypeAccount.loginFalse) {
+    return
+   }
+   this.props.history.push(ClientRouter.message)
+   console.log("login true");
+   
   }
 }

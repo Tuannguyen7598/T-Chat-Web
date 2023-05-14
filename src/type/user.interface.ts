@@ -19,7 +19,7 @@ export class Credentials {
 export class UserDto {
       id: string = uuid()
       username: string = ""
-      credentials: Credentials // ??????
+      credentials: Credentials = Credentials.createObj()
       role: UserRole = UserRole.user;
       createAt: Date = new Date()
       deleteAt: Date = new Date()
@@ -36,4 +36,20 @@ export class UserDto {
 
 export class Message {
       id: string
+}
+export enum UserActonTypeAccount {
+      loginSuccess= "Login Success",
+      loginFalse= "Login False",
+      registerSuccess = "Register Succsess",
+      registerFalse = "Register False",
+      settingAccountFalse = "Setting Account False",
+      settingAccountSuccess = "Setting Account Success",
+      deleteAccountFalse = "Delete Acconnt False",
+      deleteAccountSuccess = "Delete Account Success"
+}
+export enum KeyToCommunicateUserServer {
+      login = "Login",
+      register = "Register",
+      settingAccount = "Setting Account",
+      deleteAccount = "Delete Accont"
 }

@@ -5,3 +5,7 @@ export class ClientRouter {
     static group = '/group'
     static live = '/live'
 }
+export class ServerRouter {
+    static register = "/login/register"
+    static login = "login/login"
+}
