@@ -53,7 +53,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     </Box>
 
                                     <Box height='100%' mt='2px'>
-                                          <ButtonBase style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
+                                          <ButtonBase style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
                                                 <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
                                                       <Avatar src="" />
                                                       <Box ml={1}>

@@ -9,6 +9,7 @@ import { Login } from "./Container/Login/Login";
 import { IPageProps, connectContainer } from "./ContainerBase";
 import "./app.scss";
 import { ClientRouter } from "./Routers";
+import { DraphonyToast } from "./Component/Toast";
 
 
 
@@ -45,6 +46,7 @@ class AppRoutesRaw extends React.Component<IPageProps> {
                             <Route exact path={ClientRouter.group} component={Group} />
                             <Route exact path={ClientRouter.live} component={Live} />
                         </Switch>
+                        <DraphonyToast/>
                     </Router>
                 
             </>
