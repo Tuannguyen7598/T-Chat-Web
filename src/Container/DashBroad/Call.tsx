@@ -42,12 +42,12 @@ export class CallRaw extends React.Component<IPageProps, IState> {
             return (
                   <>
                         <Header />
-                        <Grid container component='main' height='99%'>
+                        <Grid component='main' height='100%' display='flex'>
                               <Navigation
                                     state={1}
                                     onClick={(type: any) => this.onChangeRoute(type)}
                               />
-                              <Grid item xs={2} height='100%' >
+                              <Grid item xs={12} md={4} height='100%' boxShadow={1} width='16%'>
                                     <Box height='50px' width='100%' display='flex' boxShadow={1} alignItems='center'>
                                           <Box sx={{ ml: 1, mr: 1, border: 1, borderColor: 'black', background: '#6a5acd', width: '30px', borderRadius: 1, height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                 <LocalPhoneIcon sx={{ color: 'white' }} />

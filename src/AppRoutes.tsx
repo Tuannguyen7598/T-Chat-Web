@@ -1,15 +1,15 @@
 import React from "react";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
+import { DraphonyToast } from "./Component/Toast";
 import { Call } from "./Container/DashBroad/Call";
 import { Group } from "./Container/DashBroad/Group";
 import { Live } from "./Container/DashBroad/Live";
 import { Message } from "./Container/DashBroad/Message";
 import { Login } from "./Container/Login/Login";
 import { IPageProps, connectContainer } from "./ContainerBase";
-import "./app.scss";
 import { ClientRouter } from "./Routers";
-import { DraphonyToast } from "./Component/Toast";
+import "./app.scss";
 
 
 
@@ -50,13 +50,7 @@ class AppRoutesRaw extends React.Component<IPageProps> {
                     </Router>
                 
             </>
-
-
-
-
         );
-
-
     }
 }
 

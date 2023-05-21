@@ -1,23 +1,56 @@
+import styled from '@emotion/styled';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import AspectRatioIcon from '@mui/icons-material/AspectRatio';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ChatIcon from '@mui/icons-material/Chat';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import GroupsIcon from '@mui/icons-material/Groups';
 import ImageIcon from '@mui/icons-material/Image';
-import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import SendIcon from '@mui/icons-material/Send';
 import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
 import ShareIcon from '@mui/icons-material/Share';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { Avatar, Box, Button, ButtonBase, Container, Grid, Tab, Tabs, TextField, Typography } from "@mui/material";
+import { Avatar, Box, ButtonBase, Container, Grid, Tab, Tabs, TextField, Typography } from "@mui/material";
 import React from "react";
 import { Header } from "../../Component/Header";
+import { Navigation } from '../../Component/Navigation';
 import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter } from '../../Routers';
-import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
-import { Navigation } from '../../Component/Navigation';
+export interface propsState {
+      online: boolean
+}
+const CustomAvatarWrapper = styled(Avatar)`
+  &.MuiAvatar-root {
+    position: relative;
+    overflow: visible;
+
+    &::before {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: ${(props:propsState) => (props.online ? '#2ecc71' : '#ccc')};
+      border: 2px solid #fff;
+      bottom: 0px;
+      right: 0px;
+      transform: translate(20%, 20%);
+    }
+  }
+
+ 
+    & img {
+      border-radius: 50%;
+      object-fit: cover;
+    
+  }
+`;
+
+const StatusIndicator = styled('div')`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: ${(props:propsState) => (props.online ? '#0000ff' : '#fff')};
+`;
 export interface IState {
       value: number
 }
@@ -41,7 +74,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     state={0}
                                     onClick={(type: any) => this.onChangeRoute(type)}
                               />
-                              <Grid item xs={12} md={4} height='100%' boxShadow={1}>
+                              <Grid item xs={12} md={4} height='100%' boxShadow={1} width='16%'>
 
                                     <Box width='100%' boxShadow={1} display='flex' alignItems='center' height='50px' >
                                           <Box sx={{ ml: 1, mr: 1, border: 1, borderColor: 'black', background: '#6a5acd', width: '30px', borderRadius: 1, height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -55,25 +88,26 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     <Box height='100%' mt='2px'>
                                           <ButtonBase style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
                                                 <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
-                                                      <Avatar src="" />
+                                                      <CustomAvatarWrapper  online={true} src='./assets/tesst.png'/>
                                                       <Box ml={1}>
                                                             <Typography typography='h4'>Quang Tuấn Nguyễn (tôi)</Typography>
                                                             <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>Tin nhẵn cuối cùng</Typography>
                                                       </Box>
-                                                      <CheckCircleOutlinedIcon style={{ marginLeft: 50, color: 'green' }} />
+                                                      <StatusIndicator online={true} style={{marginLeft:'50px'}}/>
                                                 </Box>
                                           </ButtonBase>
 
-                                          <ButtonBase style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
+                                          <ButtonBase style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
                                                 <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
-                                                      <Avatar src="" />
+                                                      <CustomAvatarWrapper  online={true} src='./assets/tesst.png'/>
                                                       <Box ml={1}>
                                                             <Typography typography='h4'>Quang Tuấn Nguyễn (tôi)</Typography>
                                                             <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>Tin nhẵn cuối cùng</Typography>
                                                       </Box>
-                                                      <CheckCircleOutlinedIcon style={{ marginLeft: 50, color: 'red' }} />
+                                                      <StatusIndicator online={true} style={{marginLeft:'50px'}}/>
                                                 </Box>
                                           </ButtonBase>
+
                                     </Box>
 
                               </Grid>
@@ -100,11 +134,11 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     <Box component={Container} height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
                                           <Grid container width='100%' height='50%' style={{ display: 'flex', height: '20%' }} >
                                                 <Grid item xs mt={1}>
-                                                      <ButtonBase ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
-                                                      <ButtonBase ><ShareIcon style={{ width: '50px' }} /></ButtonBase>
-                                                      <ButtonBase ><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
-                                                      <ButtonBase ><ImageIcon style={{ width: '50px' }} /></ButtonBase>
-                                                      <ButtonBase ><SentimentSatisfiedAltIcon style={{ width: '50px' }} /></ButtonBase>
+                                                      <ButtonBase disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
+                                                      <ButtonBase disableTouchRipple><ShareIcon style={{ width: '50px' }} /></ButtonBase>
+                                                      <ButtonBase disableTouchRipple><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
+                                                      <ButtonBase disableTouchRipple><ImageIcon style={{ width: '50px' }} /></ButtonBase>
+                                                      <ButtonBase disableTouchRipple><SentimentSatisfiedAltIcon style={{ width: '50px' }} /></ButtonBase>
                                                 </Grid>
                                                 <Grid item xs style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                                       <ButtonBase ><SendIcon style={{ width: '40px' }} /></ButtonBase>

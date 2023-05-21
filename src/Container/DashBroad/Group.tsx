@@ -35,12 +35,12 @@ export class GroupRaw extends React.Component<IPageProps, IState> {
             return (
                   <>
                         <Header />
-                        <Grid container component='main' height='100%'>
+                        <Grid component='main' height='100%' display='flex'>
                               <Navigation
                                     state={2}
                                     onClick={(type: any) => this.onChangeRoute(type)}
                               />
-                              <Grid item xs={2} height='100%' boxShadow={1}>
+                              <Grid item xs={12} md={4} height='100%' boxShadow={1} width='16%'>
 
                                     <Box width='100%' boxShadow={1} display='flex' alignItems='center' height='50px' justifyContent='space-between'>
                                           <Box display='flex' alignItems='center'>
