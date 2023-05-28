@@ -17,7 +17,7 @@ export const DraphonyToast = (): JSX.Element => {
     return (
         <Box >
             <Box clone minWidth="800px">
-                <ToastContainer position="bottom-right" transition={Flip} limit={3} closeButton={false} hideProgressBar autoClose={5000} />
+                <ToastContainer position="bottom-right" transition={Flip} limit={1} closeButton={false} hideProgressBar autoClose={5000} />
             </Box>
         </Box>
     );

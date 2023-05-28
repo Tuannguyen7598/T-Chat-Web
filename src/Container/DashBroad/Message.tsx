@@ -2,7 +2,6 @@ import styled from '@emotion/styled';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ChatIcon from '@mui/icons-material/Chat';
-import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ImageIcon from '@mui/icons-material/Image';
 import SendIcon from '@mui/icons-material/Send';
@@ -14,7 +13,9 @@ import React from "react";
 import { Header } from "../../Component/Header";
 import { Navigation } from '../../Component/Navigation';
 import { IPageProps, connectContainer } from "../../ContainerBase";
-import { ClientRouter } from '../../Routers';
+import { ClientRouter, ServerRouter } from '../../Routers';
+import io from "socket.io-client";
+import Axios from 'axios';
 export interface propsState {
       online: boolean
 }
@@ -29,7 +30,7 @@ const CustomAvatarWrapper = styled(Avatar)`
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background-color: ${(props:propsState) => (props.online ? '#2ecc71' : '#ccc')};
+      background-color: ${(props: propsState) => (props.online ? '#2ecc71' : '#ccc')};
       border: 2px solid #fff;
       bottom: 0px;
       right: 0px;
@@ -49,7 +50,7 @@ const StatusIndicator = styled('div')`
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: ${(props:propsState) => (props.online ? '#0000ff' : '#fff')};
+  background-color: ${(props: propsState) => (props.online ? '#0000ff' : '#fff')};
 `;
 export interface IState {
       value: number
@@ -63,9 +64,13 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       }
       componentDidMount() {
 
+            
       }
 
       render() {
+          
+            
+         
             return (
                   <>
                         <Header />
@@ -86,25 +91,25 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     </Box>
 
                                     <Box height='100%' mt='2px'>
-                                          <ButtonBase style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
+                                          <ButtonBase onClick={(e) => this.onClickChat()} style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
                                                 <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
-                                                      <CustomAvatarWrapper  online={true} src='./assets/tesst.png'/>
+                                                      <CustomAvatarWrapper online={true} src='./assets/tesst.png' />
                                                       <Box ml={1}>
                                                             <Typography typography='h4'>Quang Tuấn Nguyễn (tôi)</Typography>
                                                             <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>Tin nhẵn cuối cùng</Typography>
                                                       </Box>
-                                                      <StatusIndicator online={true} style={{marginLeft:'50px'}}/>
+                                                      <StatusIndicator online={true} style={{ marginLeft: '50px' }} />
                                                 </Box>
                                           </ButtonBase>
 
                                           <ButtonBase style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
                                                 <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
-                                                      <CustomAvatarWrapper  online={true} src='./assets/tesst.png'/>
+                                                      <CustomAvatarWrapper online={true} src='./assets/tesst.png' />
                                                       <Box ml={1}>
                                                             <Typography typography='h4'>Quang Tuấn Nguyễn (tôi)</Typography>
                                                             <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>Tin nhẵn cuối cùng</Typography>
                                                       </Box>
-                                                      <StatusIndicator online={true} style={{marginLeft:'50px'}}/>
+                                                      <StatusIndicator online={true} style={{ marginLeft: '50px' }} />
                                                 </Box>
                                           </ButtonBase>
 
@@ -170,6 +175,10 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       }
       private onChangeRoute = (type: 'message' | 'call' | 'group' | 'live') => {
             this.props.history.push(ClientRouter[type])
+      }
+      private onClickChat = () => {
+            Axios.get(ServerRouter.getFriends)
+            
       }
 }
 export const Message = connectContainer(MessageRaw)

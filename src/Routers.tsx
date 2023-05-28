@@ -8,4 +8,5 @@ export class ClientRouter {
 export class ServerRouter {
     static register = "/register"
     static login = "/login"
+    static getFriends = "/get-friends"
 }

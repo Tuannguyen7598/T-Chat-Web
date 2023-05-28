@@ -8,14 +8,17 @@ import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import Axios from "axios";
+import Axios, { AxiosError } from "axios";
 import React from "react";
 import { MyAlert } from '../../Component/Alert';
-import { IPageProps } from "../../ContainerBase";
-import { ClientRouter, ServerRouter } from "../../Routers";
-import { UserActonTypeAccount, UserDto } from "../../type";
 import { DraphonyToast } from '../../Component/Toast';
-import { toastError, toastSuccess } from '../../Component/ToastMessage';
+import { toastSuccess } from '../../Component/ToastMessage';
+import { IPageProps, connectContainer } from "../../ContainerBase";
+import { ClientRouter, ServerRouter } from "../../Routers";
+import { UserActionType } from '../../appState/user';
+import { UserActonTypeAccount, UserDto, UserRole } from "../../type";
+import { AppState } from '../../appState/AppState';
+import { io } from 'socket.io-client';
 
 
 export interface IState {
@@ -26,10 +29,10 @@ export interface IState {
   isSignUp: boolean
   isConfirm: boolean
   passWordConfirm: string
-  
+
 }
 
-export class Login extends React.Component<IPageProps, IState> {
+class LoginRaw extends React.Component<IPageProps, IState> {
   constructor(props: IPageProps) {
     super(props)
     this.state = {
@@ -39,7 +42,7 @@ export class Login extends React.Component<IPageProps, IState> {
       isSignUp: false,
       passWordConfirm: '',
       isConfirm: true,
-      isRegisterFales:false
+      isRegisterFales: false
     }
   }
   componentDidMount() {
@@ -56,7 +59,7 @@ export class Login extends React.Component<IPageProps, IState> {
       state = 'Register'
       state2 = 'Sign in'
     }
-    console.log(this.state.user.credentials)
+
     return (
       <Container component="main" maxWidth="xs" onKeyPress={(e) => {
         if (e.key === "Enter" && !this.state.isSignUp) {
@@ -68,9 +71,9 @@ export class Login extends React.Component<IPageProps, IState> {
         }
 
       }}>
-        
-        <DraphonyToast/>
-       
+
+        <DraphonyToast />
+
         <CssBaseline />
         <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', width: "500px" }} >
           <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
@@ -90,7 +93,7 @@ export class Login extends React.Component<IPageProps, IState> {
               onChange={(e) => this.setState({
                 isLoginFalse: false,
                 isEmpty: false,
-                isRegisterFales:false,
+                isRegisterFales: false,
                 user: {
                   ...this.state.user,
                   username: e.currentTarget.value
@@ -111,7 +114,7 @@ export class Login extends React.Component<IPageProps, IState> {
               onChange={(e) => this.setState({
                 isLoginFalse: false,
                 isEmpty: false,
-                isRegisterFales:false,
+                isRegisterFales: false,
                 user: {
                   ...this.state.user,
                   credentials: {
@@ -135,7 +138,7 @@ export class Login extends React.Component<IPageProps, IState> {
                 onChange={(e) => this.setState({
                   isLoginFalse: false,
                   isEmpty: false,
-                  isRegisterFales:false,
+                  isRegisterFales: false,
                   passWordConfirm: e.currentTarget.value
                 })}
                 id="password"
@@ -192,7 +195,7 @@ export class Login extends React.Component<IPageProps, IState> {
                       user: UserDto.createObj(),
                       isEmpty: false,
                       isLoginFalse: false,
-                      isRegisterFales:false
+                      isRegisterFales: false
                     })
                     return
                   }
@@ -201,7 +204,7 @@ export class Login extends React.Component<IPageProps, IState> {
                     user: UserDto.createObj(),
                     isEmpty: false,
                     isLoginFalse: false,
-                    isRegisterFales:false
+                    isRegisterFales: false
                   })
                 }
                 }
@@ -221,14 +224,14 @@ export class Login extends React.Component<IPageProps, IState> {
   }
   private onSignin = async () => {
     const user = this.state.user
-    
+
     if (user.username === "" || user.credentials.password === "") {
       this.setState({
         isEmpty: true
       })
       return
     }
-    const login = await Axios.post(ServerRouter.login, user)
+    const login = await Axios.post<UserDto & { token: string } | any>(ServerRouter.login, user)
     if (login.data === UserActonTypeAccount.loginFalse) {
       this.setState({
         isLoginFalse: true
@@ -236,6 +239,14 @@ export class Login extends React.Component<IPageProps, IState> {
       return
     }
     toastSuccess("Login Successfuly")
+    this.props.dispatch({
+      type: UserActionType.signin,
+      id: login?.data.id ?? '',
+      accessToken: login?.data.token ?? '',
+      username: login?.data.username ?? '',
+      role: login?.data.role ?? UserRole.user
+    })
+    
     this.props.history.push(ClientRouter.message)
   }
 
@@ -251,16 +262,26 @@ export class Login extends React.Component<IPageProps, IState> {
       this.setState({
         isConfirm: false
       })
+
       return
     }
-    const register = await Axios.post(ServerRouter.register, user)
+    const register = await Axios.post<UserDto & { token: string } | any>(ServerRouter.register, user)
     if (register.data === UserActonTypeAccount.registerFalse) {
       this.setState({
-        isRegisterFales:true
+        isRegisterFales: true
       })
       return
     }
     toastSuccess("Register Successfuly")
+    this.props.dispatch({
+      type: UserActionType.signin,
+      id: register.data.id ?? '',
+      accessToken: register.data.token ?? '',
+      username: register.data.username ?? '',
+      role: register.data.role ?? UserRole.user
+    })
     this.props.history.push(ClientRouter.message)
   }
 }
+
+export const Login = connectContainer(LoginRaw)
