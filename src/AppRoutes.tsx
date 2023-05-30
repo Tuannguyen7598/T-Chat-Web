@@ -11,7 +11,6 @@ import { Login } from "./Container/Login/Login";
 import { IPageProps, connectContainer } from "./ContainerBase";
 import { ClientRouter } from "./Routers";
 import "./app.scss";
-import { UserActionType } from "./appState/user";
 
 
 export interface IState {
@@ -42,12 +41,9 @@ class AppRoutesRaw extends React.Component<IPageProps, IState> {
     //     })
     // }
     render(): JSX.Element {
-        console.log('kiem tra appstate',this.props.appState.user)
+        console.log('kiem tra appstate', this.props.appState.user)
         const socket = this.props.appState.socket
-        socket.on('Login',(data)=>{
-            console.log('kiem tra server gui',data);
-            
-        })
+
         return (
             <>
 
@@ -56,7 +52,7 @@ class AppRoutesRaw extends React.Component<IPageProps, IState> {
                         <Redirect exact from="/" to={ClientRouter.login} />
                         <Route exact path={ClientRouter.login} component={Login} />
 
-                        {this.props.appState.isLogin  &&
+                        {this.props.appState.isLogin &&
                             <>
                                 <Route exact path={ClientRouter.message} component={Message} />
                                 <Route exact path={ClientRouter.call} component={Call} />

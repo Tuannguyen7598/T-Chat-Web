@@ -9,15 +9,20 @@ import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt
 import ShareIcon from '@mui/icons-material/Share';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Avatar, Box, ButtonBase, Container, Grid, Tab, Tabs, TextField, Typography } from "@mui/material";
+import Axios from 'axios';
 import React from "react";
 import { Header } from "../../Component/Header";
 import { Navigation } from '../../Component/Navigation';
 import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
-import io from "socket.io-client";
-import Axios from 'axios';
+import { UserDto } from '../../type';
+import { Friend } from '../../type/friend.interface';
 export interface propsState {
       online: boolean
+}
+interface ListSocketOnConnect {
+      socketId: string;
+      userId: string;
 }
 const CustomAvatarWrapper = styled(Avatar)`
   &.MuiAvatar-root {
@@ -54,23 +59,36 @@ const StatusIndicator = styled('div')`
 `;
 export interface IState {
       value: number
+      listIdFriendOnline: Array<ListSocketOnConnect>
+      listFriend:Array<Pick<UserDto, 'id'| 'username'>>
 }
 export class MessageRaw extends React.Component<IPageProps, IState> {
       constructor(props: IPageProps) {
             super(props)
             this.state = {
-                  value: 0
+                  value: 0,
+                  listIdFriendOnline: [],
+                  listFriend: [],
+
             }
       }
-      componentDidMount() {
-
-            
+      async componentDidMount() {
+            this.props.appState.socket.on('newUserOnline', (data: Array<ListSocketOnConnect>) => {
+                  this.setState({ listIdFriendOnline: data })
+            })
+            const listFriend = await Axios.post<Array<Pick<UserDto, 'id'| 'username'>>>(ServerRouter.getFriends(this.props.appState.user.id ?? '')).catch(()=> 300)
+            if (typeof listFriend === 'number') {
+                  return
+            }
+            this.setState({
+                  listFriend: listFriend.data
+            })
       }
 
       render() {
-          
-            
-         
+            const listFrienfOnline = this.state.listFriend.filter((friend)=> this.state.listIdFriendOnline.findIndex((data)=> data.userId === friend.id) !== -1)
+
+
             return (
                   <>
                         <Header />
@@ -91,27 +109,21 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     </Box>
 
                                     <Box height='100%' mt='2px'>
-                                          <ButtonBase onClick={(e) => this.onClickChat()} style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
-                                                <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
-                                                      <CustomAvatarWrapper online={true} src='./assets/tesst.png' />
-                                                      <Box ml={1}>
-                                                            <Typography typography='h4'>Quang Tuấn Nguyễn (tôi)</Typography>
-                                                            <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>Tin nhẵn cuối cùng</Typography>
-                                                      </Box>
-                                                      <StatusIndicator online={true} style={{ marginLeft: '50px' }} />
-                                                </Box>
-                                          </ButtonBase>
 
-                                          <ButtonBase style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
-                                                <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
-                                                      <CustomAvatarWrapper online={true} src='./assets/tesst.png' />
-                                                      <Box ml={1}>
-                                                            <Typography typography='h4'>Quang Tuấn Nguyễn (tôi)</Typography>
-                                                            <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>Tin nhẵn cuối cùng</Typography>
+                                          {listFrienfOnline.map((x) =>
+                                                <ButtonBase onClick={(e) => this.onClickChat()} style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
+                                                      <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
+                                                            <CustomAvatarWrapper online={true} src='./assets/tesst.png' />
+                                                            <Box ml={1}>
+                                                                  <Typography typography='h4'>{x.username}</Typography>
+                                                                  <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>Tin nhẵn cuối cùng</Typography>
+                                                            </Box>
+                                                            <StatusIndicator online={true} style={{ marginLeft: '50px' }} />
                                                       </Box>
-                                                      <StatusIndicator online={true} style={{ marginLeft: '50px' }} />
-                                                </Box>
-                                          </ButtonBase>
+                                                </ButtonBase>
+                                          )}
+
+
 
                                     </Box>
 
@@ -177,8 +189,8 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             this.props.history.push(ClientRouter[type])
       }
       private onClickChat = () => {
-            Axios.get(ServerRouter.getFriends)
             
+
       }
 }
 export const Message = connectContainer(MessageRaw)

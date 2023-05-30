@@ -8,5 +8,6 @@ export class ClientRouter {
 export class ServerRouter {
     static register = "/register"
     static login = "/login"
-    static getFriends = "/get-friends"
+    static getFriends = (userId:string):string => `/get-friends/${userId}` 
+
 }
