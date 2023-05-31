@@ -11,6 +11,7 @@ import { Login } from "./Container/Login/Login";
 import { IPageProps, connectContainer } from "./ContainerBase";
 import { ClientRouter } from "./Routers";
 import "./app.scss";
+import { UserActionType } from "./appState/user";
 
 
 export interface IState {
@@ -33,16 +34,17 @@ class AppRoutesRaw extends React.Component<IPageProps, IState> {
 
     }
     componentDidMount() {
+      
 
     }
-    // componentWillMount(): void {
+    // componentWillMount() {
     //     this.props.dispatch({
     //         type: UserActionType.signout
     //     })
     // }
     render(): JSX.Element {
-        console.log('kiem tra appstate', this.props.appState.user)
-        const socket = this.props.appState.socket
+        
+        // const socket = this.props.appState.socket
 
         return (
             <>

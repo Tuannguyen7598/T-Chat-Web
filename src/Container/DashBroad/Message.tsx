@@ -110,12 +110,12 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
                                     <Box height='100%' mt='2px'>
 
-                                          {listFrienfOnline.map((x) =>
+                                          {this.state.listIdFriendOnline.map((x) =>
                                                 <ButtonBase onClick={(e) => this.onClickChat()} style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
                                                       <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
                                                             <CustomAvatarWrapper online={true} src='./assets/tesst.png' />
                                                             <Box ml={1}>
-                                                                  <Typography typography='h4'>{x.username}</Typography>
+                                                                  <Typography typography='h4'>sdsda</Typography>
                                                                   <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>Tin nhẵn cuối cùng</Typography>
                                                             </Box>
                                                             <StatusIndicator online={true} style={{ marginLeft: '50px' }} />

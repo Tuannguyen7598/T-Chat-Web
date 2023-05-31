@@ -8,15 +8,18 @@ export class AppState {
     onConect: any
     onDisconect: any
     constructor() {
-        const user = JSON.parse(localStorage.getItem('user') ?? '{}').action
-        this.socket = io("http://localhost:3003", { query: { userId: user?.id ?? '' } })
-        this.onConect = this.socket.on('connect', () => {
-            toastSuccess('Connect success')
-        })
-        this.onDisconect = this.socket.on('disconnect', () => {
-            toastError('Disconnected')
+        const user = this.user
+       
+            this.socket = io("http://localhost:3003", { query: { token: user.accessToken ?? '' } })
+            this.onConect = this.socket.on('connect', () => {
+                toastSuccess('Connect success')
+            })
+            this.onDisconect = this.socket.on('disconnect', () => {
+                toastError('Disconnected')
 
-        })
+            })
+        
+
 
     }
 

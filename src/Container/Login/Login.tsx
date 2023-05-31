@@ -246,7 +246,8 @@ class LoginRaw extends React.Component<IPageProps, IState> {
       username: login?.data.username ?? '',
       role: login?.data.role ?? UserRole.user
     })
-    
+    this.props.appState.socket.disconnect()
+    this.props.appState.socket =io("http://localhost:3003", { query: { token: this.props.appState.user.accessToken ?? '' } })
     this.props.history.push(ClientRouter.message)
   }
 

@@ -44,7 +44,6 @@ export const userLocal = (state: AppState, action: UserAction): AppState => {
         return newAppState
     }
     if (action.type === UserActionType.signout) {
-        localStorage.removeItem('user')
         localStorage.setItem('islogin', 'false')
     }
 
