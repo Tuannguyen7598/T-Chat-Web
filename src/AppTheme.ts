@@ -23,6 +23,7 @@ export const AppTheme = createTheme({
             color: "#000000",
         },
         h4: {
+            alignItems:'flex-start',
             fontWeight: 500,
             fontSize: "14px",
             lineHeight: "14px",

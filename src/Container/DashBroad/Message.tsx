@@ -16,8 +16,7 @@ import { Navigation } from '../../Component/Navigation';
 import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
 import { UserDto } from '../../type';
-import { Friend } from '../../type/friend.interface';
-export interface propsState {
+export interface propsAvatar {
       online: boolean
 }
 interface ListSocketOnConnect {
@@ -35,7 +34,7 @@ const CustomAvatarWrapper = styled(Avatar)`
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background-color: ${(props: propsState) => (props.online ? '#2ecc71' : '#ccc')};
+      background-color: ${(props: propsAvatar) => (props.online ? '#2ecc71' : '#ccc')};
       border: 2px solid #fff;
       bottom: 0px;
       right: 0px;
@@ -55,12 +54,12 @@ const StatusIndicator = styled('div')`
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: ${(props: propsState) => (props.online ? '#0000ff' : '#fff')};
+  background-color: ${(props: propsAvatar) => (props.online ? '#0000ff' : '#fff')};
 `;
 export interface IState {
       value: number
       listIdFriendOnline: Array<ListSocketOnConnect>
-      listFriend:Array<Pick<UserDto, 'id'| 'username'>>
+      listUser: Array<Omit<UserDto, 'credentials'>>
 }
 export class MessageRaw extends React.Component<IPageProps, IState> {
       constructor(props: IPageProps) {
@@ -68,7 +67,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             this.state = {
                   value: 0,
                   listIdFriendOnline: [],
-                  listFriend: [],
+                  listUser: [],
 
             }
       }
@@ -76,17 +75,22 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             this.props.appState.socket.on('newUserOnline', (data: Array<ListSocketOnConnect>) => {
                   this.setState({ listIdFriendOnline: data })
             })
-            const listFriend = await Axios.post<Array<Pick<UserDto, 'id'| 'username'>>>(ServerRouter.getFriends(this.props.appState.user.id ?? '')).catch(()=> 300)
-            if (typeof listFriend === 'number') {
+            const listUser = await Axios.get<Array<Omit<UserDto, 'credentials'>>>(ServerRouter.getUser).catch(() => 300)
+
+
+            if (typeof listUser === 'number') {
                   return
             }
+
             this.setState({
-                  listFriend: listFriend.data
+                  listUser: listUser.data
             })
       }
 
       render() {
-            const listFrienfOnline = this.state.listFriend.filter((friend)=> this.state.listIdFriendOnline.findIndex((data)=> data.userId === friend.id) !== -1)
+           
+
+            const listFrienfOnline = this.state.listUser.filter((user) => this.state.listIdFriendOnline.findIndex((data) => data.userId === user.id) !== -1)
 
 
             return (
@@ -110,18 +114,19 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
                                     <Box height='100%' mt='2px'>
 
-                                          {this.state.listIdFriendOnline.map((x) =>
-                                                <ButtonBase onClick={(e) => this.onClickChat()} style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
+                                          {listFrienfOnline.map((x) =>
+                                                <ButtonBase key={x.id} onClick={(e) => this.onClickChat()} style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
                                                       <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
                                                             <CustomAvatarWrapper online={true} src='./assets/tesst.png' />
-                                                            <Box ml={1}>
-                                                                  <Typography typography='h4'>sdsda</Typography>
-                                                                  <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>Tin nhẵn cuối cùng</Typography>
+                                                            <Box ml={1} width='75%'>
+                                                                  <Typography typography='h4' align='left'>{x.username}</Typography>
+                                                                  <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>cuối cùngasasasasasa</Typography>
                                                             </Box>
-                                                            <StatusIndicator online={true} style={{ marginLeft: '50px' }} />
+                                                            <StatusIndicator online={true} />
                                                       </Box>
                                                 </ButtonBase>
                                           )}
+
 
 
 
@@ -137,7 +142,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                       style={{ marginLeft: 10 }}
                                                       src='' />
                                                 <Box ml={1} width='100%'>
-                                                      <Typography typography='h4'>Quang Tuấn Nguyễn</Typography>
+                                                      <Typography typography='h4'>{this.props.appState.userCurrent.username}</Typography>
                                                 </Box>
                                           </Box>
                                           <Box sx={{ height: '100%', width: '90%' }} >
@@ -151,7 +156,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     <Box component={Container} height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
                                           <Grid container width='100%' height='50%' style={{ display: 'flex', height: '20%' }} >
                                                 <Grid item xs mt={1}>
-                                                      <ButtonBase disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
+                                                      <ButtonBase disableTouchRipple onClick={(e)=> this.onClickChat()} ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
                                                       <ButtonBase disableTouchRipple><ShareIcon style={{ width: '50px' }} /></ButtonBase>
                                                       <ButtonBase disableTouchRipple><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
                                                       <ButtonBase disableTouchRipple><ImageIcon style={{ width: '50px' }} /></ButtonBase>
@@ -189,6 +194,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             this.props.history.push(ClientRouter[type])
       }
       private onClickChat = () => {
+            console.log('username current in app state',this.props.appState.userCurrent.username);
             
 
       }

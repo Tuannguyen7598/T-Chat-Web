@@ -15,7 +15,7 @@ import { DraphonyToast } from '../../Component/Toast';
 import { toastSuccess } from '../../Component/ToastMessage';
 import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from "../../Routers";
-import { UserActionType } from '../../appState/user';
+import { UserAction, UserActionType } from '../../appState/user';
 import { UserActonTypeAccount, UserDto, UserRole } from "../../type";
 import { AppState } from '../../appState/AppState';
 import { io } from 'socket.io-client';
@@ -238,16 +238,23 @@ class LoginRaw extends React.Component<IPageProps, IState> {
       })
       return
     }
+    let userOut:Array<UserAction> = JSON.parse(localStorage.getItem('user') ?? '[]') as any
+      userOut.forEach((x)=> {
+        x.isUserCurrent = false
+      })
+      localStorage.removeItem('user')
+      localStorage.setItem('user',JSON.stringify(userOut))
     toastSuccess("Login Successfuly")
+    this.props.appState?.socket?.disconnect()
     this.props.dispatch({
       type: UserActionType.signin,
+      isUserCurrent:true,
       id: login?.data.id ?? '',
       accessToken: login?.data.token ?? '',
       username: login?.data.username ?? '',
       role: login?.data.role ?? UserRole.user
     })
-    this.props.appState.socket.disconnect()
-    this.props.appState.socket =io("http://localhost:3003", { query: { token: this.props.appState.user.accessToken ?? '' } })
+    
     this.props.history.push(ClientRouter.message)
   }
 
@@ -277,6 +284,7 @@ class LoginRaw extends React.Component<IPageProps, IState> {
     this.props.dispatch({
       type: UserActionType.signin,
       id: register.data.id ?? '',
+      isUserCurrent:true,
       accessToken: register.data.token ?? '',
       username: register.data.username ?? '',
       role: register.data.role ?? UserRole.user

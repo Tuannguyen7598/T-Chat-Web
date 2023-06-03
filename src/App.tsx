@@ -12,7 +12,7 @@ import { jsx } from "@emotion/react";
 
 export const App = (props: { baseURL: string; initialState: AppState }):jsx.JSX.Element => {
     Axios.defaults.baseURL = props.baseURL;
-    Axios.defaults.headers.common['Authorization'] = `Bearer ${props.initialState.user.accessToken}`
+    Axios.defaults.headers.common['Authorization'] = `Bearer ${props.initialState.listUserLocal.find(x => x.isUserCurrent === true)?.accessToken}`
     const [appState, dispatch] = React.useReducer(reducer, props.initialState);
 
     return (

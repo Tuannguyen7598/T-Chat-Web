@@ -11,12 +11,14 @@ import { Login } from "./Container/Login/Login";
 import { IPageProps, connectContainer } from "./ContainerBase";
 import { ClientRouter } from "./Routers";
 import "./app.scss";
-import { UserActionType } from "./appState/user";
+import { UserAction } from "./appState/user";
 
 
 export interface IState {
     email: string;
     loading: boolean;
+    userCurrent: UserAction
+
 }
 
 
@@ -28,23 +30,22 @@ class AppRoutesRaw extends React.Component<IPageProps, IState> {
         this.state = {
             email: '',
             loading: false,
+            userCurrent: {} as any
+
 
 
         }
 
     }
     componentDidMount() {
-      
+        this.setState({
+            userCurrent: this.props.appState.userCurrent
 
-    }
-    // componentWillMount() {
-    //     this.props.dispatch({
-    //         type: UserActionType.signout
-    //     })
-    // }
-    render(): JSX.Element {
+        })
         
-        // const socket = this.props.appState.socket
+    }
+
+    render(): JSX.Element {
 
         return (
             <>
@@ -54,15 +55,14 @@ class AppRoutesRaw extends React.Component<IPageProps, IState> {
                         <Redirect exact from="/" to={ClientRouter.login} />
                         <Route exact path={ClientRouter.login} component={Login} />
 
-                        {this.props.appState.isLogin &&
-                            <>
-                                <Route exact path={ClientRouter.message} component={Message} />
-                                <Route exact path={ClientRouter.call} component={Call} />
-                                <Route exact path={ClientRouter.group} component={Group} />
-                                <Route exact path={ClientRouter.live} component={Live} />
-                            </>
 
-                        }
+                        <Route exact path={ClientRouter.message} component={Message} />
+                        <Route exact path={ClientRouter.call} component={Call} />
+                        <Route exact path={ClientRouter.group} component={Group} />
+                        <Route exact path={ClientRouter.live} component={Live} />
+
+
+
                     </Switch>
                     <DraphonyToast />
                 </Router>
