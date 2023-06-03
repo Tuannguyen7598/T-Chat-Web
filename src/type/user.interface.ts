@@ -19,7 +19,7 @@ export class Credentials {
 export class UserDto {
       id: string = uuid()
       username: string = ""
-      credentials: Credentials = Credentials.createObj()
+      credentials: Credentials 
       role: UserRole = UserRole.user;
       createAt: Date = new Date()
       deleteAt: Date = new Date()

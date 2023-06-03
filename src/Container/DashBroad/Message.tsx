@@ -16,6 +16,7 @@ import { Navigation } from '../../Component/Navigation';
 import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
 import { UserDto } from '../../type';
+import { BoxChatPersonal } from '../../type/message.interface';
 export interface propsAvatar {
       online: boolean
 }
@@ -58,41 +59,48 @@ const StatusIndicator = styled('div')`
 `;
 export interface IState {
       value: number
-      listIdFriendOnline: Array<ListSocketOnConnect>
+      listIdUserOnline: Array<ListSocketOnConnect>
       listUser: Array<Omit<UserDto, 'credentials'>>
+      userChatting: Omit<UserDto, 'credentials'>
+      isOnChatWithOneUser: boolean
+      boxChat: BoxChatPersonal
 }
 export class MessageRaw extends React.Component<IPageProps, IState> {
       constructor(props: IPageProps) {
             super(props)
             this.state = {
                   value: 0,
-                  listIdFriendOnline: [],
+                  listIdUserOnline: [],
                   listUser: [],
+                  userChatting: UserDto.createObj(),
+                  isOnChatWithOneUser: false,
+                  boxChat: BoxChatPersonal.createObj()
+
 
             }
       }
       async componentDidMount() {
-            this.props.appState.socket.on('newUserOnline', (data: Array<ListSocketOnConnect>) => {
-                  this.setState({ listIdFriendOnline: data })
-            })
+            
             const listUser = await Axios.get<Array<Omit<UserDto, 'credentials'>>>(ServerRouter.getUser).catch(() => 300)
-
 
             if (typeof listUser === 'number') {
                   return
             }
 
             this.setState({
-                  listUser: listUser.data
+                  listUser: listUser.data,
             })
+           
       }
 
       render() {
-           
-
-            const listFrienfOnline = this.state.listUser.filter((user) => this.state.listIdFriendOnline.findIndex((data) => data.userId === user.id) !== -1)
-
-
+            // console.log('usercureetn',this.props.appState.userCurrent);
+            
+            this.props.appState.socket.on('newUserOnline', (data: Array<ListSocketOnConnect>) => {
+                  this.setState({ listIdUserOnline: data })
+            })
+            const listUserOnline = this.state.listUser.filter((user) => this.state.listIdUserOnline.findIndex((data) => data.userId === user.id) !== -1 )
+            const listUserOnlineWithoutuserCurrent= listUserOnline.filter((user) => user.id !== this.props.appState.userCurrent.id)
             return (
                   <>
                         <Header />
@@ -114,7 +122,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
                                     <Box height='100%' mt='2px'>
 
-                                          {listFrienfOnline.map((x) =>
+                                          {listUserOnlineWithoutuserCurrent.map((x) =>
                                                 <ButtonBase key={x.id} onClick={(e) => this.onClickChat()} style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
                                                       <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
                                                             <CustomAvatarWrapper online={true} src='./assets/tesst.png' />
@@ -136,6 +144,8 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
                               <Grid item xs height='100%' >
+                                    {this.state.isOnChatWithOneUser ? 
+                                          (<>
                                     <Box width='100%' boxShadow={1} display='flex' alignItems='center' height='50px' >
                                           <Box display='flex' alignItems='center' ml={2} width='15%'>
                                                 <Avatar
@@ -156,7 +166,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     <Box component={Container} height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
                                           <Grid container width='100%' height='50%' style={{ display: 'flex', height: '20%' }} >
                                                 <Grid item xs mt={1}>
-                                                      <ButtonBase disableTouchRipple onClick={(e)=> this.onClickChat()} ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
+                                                      <ButtonBase disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
                                                       <ButtonBase disableTouchRipple><ShareIcon style={{ width: '50px' }} /></ButtonBase>
                                                       <ButtonBase disableTouchRipple><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
                                                       <ButtonBase disableTouchRipple><ImageIcon style={{ width: '50px' }} /></ButtonBase>
@@ -185,6 +195,12 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
                                           </Box>
                                     </Box>
+                                    </>) : 
+                                          <Box marginX='30%' marginY='20%' borderRadius={4} sx={{ background: 'hsl(120, 100%, 91%)' }} width='30%' display='flex' height='7%' alignItems='center' justifyContent='center'>
+                                               CLICK AT ONE USER TO START CHAT
+                                          </Box>
+                                   
+                                    }
                               </Grid>
                         </Grid >
                   </>
@@ -194,8 +210,9 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             this.props.history.push(ClientRouter[type])
       }
       private onClickChat = () => {
-            console.log('username current in app state',this.props.appState.userCurrent.username);
-            
+            this.setState({
+                  isOnChatWithOneUser:true
+            })
 
       }
 }

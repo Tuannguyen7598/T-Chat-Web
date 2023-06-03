@@ -36,7 +36,7 @@ class LoginRaw extends React.Component<IPageProps, IState> {
   constructor(props: IPageProps) {
     super(props)
     this.state = {
-      user: UserDto.createObj(),
+      user: {...UserDto.createObj(),credentials: {password:'',salt:''}},
       isLoginFalse: false,
       isEmpty: false,
       isSignUp: false,

@@ -54,8 +54,6 @@ class AppRoutesRaw extends React.Component<IPageProps, IState> {
                     <Switch>
                         <Redirect exact from="/" to={ClientRouter.login} />
                         <Route exact path={ClientRouter.login} component={Login} />
-
-
                         <Route exact path={ClientRouter.message} component={Message} />
                         <Route exact path={ClientRouter.call} component={Call} />
                         <Route exact path={ClientRouter.group} component={Group} />
