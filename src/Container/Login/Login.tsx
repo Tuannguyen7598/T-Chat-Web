@@ -238,12 +238,7 @@ class LoginRaw extends React.Component<IPageProps, IState> {
       })
       return
     }
-    let userOut:Array<UserAction> = JSON.parse(localStorage.getItem('user') ?? '[]') as any
-      userOut.forEach((x)=> {
-        x.isUserCurrent = false
-      })
-      localStorage.removeItem('user')
-      localStorage.setItem('user',JSON.stringify(userOut))
+   
     toastSuccess("Login Successfuly")
     this.props.appState?.socket?.disconnect()
     this.props.dispatch({

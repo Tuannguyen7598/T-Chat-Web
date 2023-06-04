@@ -9,5 +9,6 @@ export class ServerRouter {
     static register = "/register"
     static login = "/login"
     static getUser = "/get-user"
+    static getBoxChatPersonal = (userId: string):string => `/get-box-chat-personal/:${userId}`
 
 }

@@ -13,29 +13,33 @@ import Axios from 'axios';
 import React from "react";
 import { Header } from "../../Component/Header";
 import { Navigation } from '../../Component/Navigation';
+import { toastError, toastSuccess } from '../../Component/ToastMessage';
 import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
 import { UserDto } from '../../type';
-import { BoxChatPersonal } from '../../type/message.interface';
+import { BoxChatPersonal, MessageDetail } from '../../type/message.interface';
+
+
 export interface propsAvatar {
       online: boolean
 }
 interface ListSocketOnConnect {
       socketId: string;
       userId: string;
+
 }
 const CustomAvatarWrapper = styled(Avatar)`
   &.MuiAvatar-root {
     position: relative;
     overflow: visible;
-
+    
     &::before {
       content: '';
-      position: absolute;
+      position: ${(props: propsAvatar) => (props.online ? 'absolute' : 'none')};
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background-color: ${(props: propsAvatar) => (props.online ? '#2ecc71' : '#ccc')};
+      background-color: #2ecc71;
       border: 2px solid #fff;
       bottom: 0px;
       right: 0px;
@@ -61,9 +65,12 @@ export interface IState {
       value: number
       listIdUserOnline: Array<ListSocketOnConnect>
       listUser: Array<Omit<UserDto, 'credentials'>>
-      userChatting: Omit<UserDto, 'credentials'>
       isOnChatWithOneUser: boolean
-      boxChat: BoxChatPersonal
+      userChattingId: string
+      historyMessage: Array<MessageDetail>
+      newMessage: MessageDetail
+      boxChatCurrent: BoxChatPersonal & {listMessage: Array<MessageDetail>}
+      listUserIsNewMessage: Array<string>
 }
 export class MessageRaw extends React.Component<IPageProps, IState> {
       constructor(props: IPageProps) {
@@ -72,35 +79,44 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                   value: 0,
                   listIdUserOnline: [],
                   listUser: [],
-                  userChatting: UserDto.createObj(),
                   isOnChatWithOneUser: false,
-                  boxChat: BoxChatPersonal.createObj()
+                  historyMessage: [],
+                  userChattingId: '',
+                  newMessage: MessageDetail.createObj(),
+                  boxChatCurrent: {...BoxChatPersonal.createObj(),listMessage:[]},
+                  listUserIsNewMessage:[]
 
 
             }
       }
       async componentDidMount() {
-            
-            const listUser = await Axios.get<Array<Omit<UserDto, 'credentials'>>>(ServerRouter.getUser).catch(() => 300)
+        
+            const listUser = await Axios.get<Array<Omit<UserDto, 'credentials'>>>(ServerRouter.getUser)
+            const getListUserIsNewMessage = this.props.appState.socket.emit('get-is-seen',(data:Array<string>)=> {
+                  this.setState({
+                        listUserIsNewMessage: data
+                  })
+                  
+            })
 
-            if (typeof listUser === 'number') {
-                  return
-            }
 
             this.setState({
-                  listUser: listUser.data,
+                  listUser: listUser.data.filter((x) => x.id !== this.props.appState.userCurrent.id),
             })
-           
+
       }
 
       render() {
-            // console.log('usercureetn',this.props.appState.userCurrent);
-            
+
+
             this.props.appState.socket.on('newUserOnline', (data: Array<ListSocketOnConnect>) => {
                   this.setState({ listIdUserOnline: data })
             })
-            const listUserOnline = this.state.listUser.filter((user) => this.state.listIdUserOnline.findIndex((data) => data.userId === user.id) !== -1 )
-            const listUserOnlineWithoutuserCurrent= listUserOnline.filter((user) => user.id !== this.props.appState.userCurrent.id)
+            this.props.appState.socket.on('recive-message', (data: Array<MessageDetail>) => {
+                  this.setState({ historyMessage: data })
+            })
+            const listUserOnline = this.state.listUser.filter((user) => this.state.listIdUserOnline.findIndex((data) => data.userId === user.id) !== -1)
+          
             return (
                   <>
                         <Header />
@@ -122,15 +138,20 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
                                     <Box height='100%' mt='2px'>
 
-                                          {listUserOnlineWithoutuserCurrent.map((x) =>
-                                                <ButtonBase key={x.id} onClick={(e) => this.onClickChat()} style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
+                                          {this.state.listUser.map((x) =>
+                                                <ButtonBase key={x.id} onClick={(e) => {
+                                                      if (e.ctrlKey === true) {
+                                                            return
+                                                      }
+                                                      this.onClicktOneUser(x.id)
+                                                }} style={{ height: '60px', width: '100%', display: 'flex', justifyContent: 'flex-start' }} >
                                                       <Box display='flex' alignItems='center' width='100%' height='100%' pl={1} >
-                                                            <CustomAvatarWrapper online={true} src='./assets/tesst.png' />
+                                                            <CustomAvatarWrapper online={listUserOnline.findIndex((y) => y.id === x.id) !== -1 ? true : false} src='./assets/tesst.png' />
                                                             <Box ml={1} width='75%'>
                                                                   <Typography typography='h4' align='left'>{x.username}</Typography>
-                                                                  <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>cuối cùngasasasasasa</Typography>
+                                                                  <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>{}</Typography>
                                                             </Box>
-                                                            <StatusIndicator online={true} />
+                                                            <StatusIndicator online={this.state.listUserIsNewMessage.findIndex((z)=> x.id === z) !== -1 ? true : false  } />
                                                       </Box>
                                                 </ButtonBase>
                                           )}
@@ -144,62 +165,83 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
                               <Grid item xs height='100%' >
-                                    {this.state.isOnChatWithOneUser ? 
+                                    {this.state.isOnChatWithOneUser ?
                                           (<>
-                                    <Box width='100%' boxShadow={1} display='flex' alignItems='center' height='50px' >
-                                          <Box display='flex' alignItems='center' ml={2} width='15%'>
-                                                <Avatar
-                                                      style={{ marginLeft: 10 }}
-                                                      src='' />
-                                                <Box ml={1} width='100%'>
-                                                      <Typography typography='h4'>{this.props.appState.userCurrent.username}</Typography>
-                                                </Box>
-                                          </Box>
-                                          <Box sx={{ height: '100%', width: '90%' }} >
-                                                <Tabs sx={{ height: '100%' }} value={this.state.value} onChange={(e: React.SyntheticEvent, newValue: number) => this.setState({ value: newValue })} aria-label="basic tabs example">
-                                                      <Tab sx={{ width: 'auto' }} label={<Typography typography='h4' textTransform='none'> Trò chuyện </Typography>} />
-                                                      <Tab label={<Typography typography='h4' textTransform='none'>Tệp</Typography>} />
-                                                </Tabs>
-                                          </Box>
-                                    </Box>
-
-                                    <Box component={Container} height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
-                                          <Grid container width='100%' height='50%' style={{ display: 'flex', height: '20%' }} >
-                                                <Grid item xs mt={1}>
-                                                      <ButtonBase disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
-                                                      <ButtonBase disableTouchRipple><ShareIcon style={{ width: '50px' }} /></ButtonBase>
-                                                      <ButtonBase disableTouchRipple><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
-                                                      <ButtonBase disableTouchRipple><ImageIcon style={{ width: '50px' }} /></ButtonBase>
-                                                      <ButtonBase disableTouchRipple><SentimentSatisfiedAltIcon style={{ width: '50px' }} /></ButtonBase>
-                                                </Grid>
-                                                <Grid item xs style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                      <ButtonBase ><SendIcon style={{ width: '40px' }} /></ButtonBase>
-                                                </Grid>
-                                          </Grid>
-                                          <TextField
-                                                placeholder='Nhập tin nhắn mới'
-                                                variant='outlined'
-                                          />
-                                          <Box display='flex' height='70%' flexDirection='column-reverse' alignItems='center' overflow='auto'>
-                                                <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' mb={2}>
-                                                      <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
-                                                            <Typography typography='h5'>Tin nhắn của bạnTin nhắn của bạnTin nhắn của bạnTin nhắn của bạn</Typography>
+                                                <Box width='100%' boxShadow={1} display='flex' alignItems='center' height='50px' >
+                                                      <Box display='flex' alignItems='center' ml={2} width='15%'>
+                                                            <Avatar
+                                                                  style={{ marginLeft: 10 }}
+                                                                  src='' />
+                                                            <Box ml={1} width='100%'>
+                                                                  <Typography typography='h4'>{this.state.listUser.find((x)=> x.id === this.state.userChattingId)?.username}</Typography>
+                                                            </Box>
+                                                      </Box>
+                                                      <Box sx={{ height: '100%', width: '90%' }} >
+                                                            <Tabs sx={{ height: '100%' }} value={this.state.value} onChange={(e: React.SyntheticEvent, newValue: number) => this.setState({ value: newValue })} aria-label="basic tabs example">
+                                                                  <Tab sx={{ width: 'auto' }} label={<Typography typography='h4' textTransform='none'> Trò chuyện </Typography>} />
+                                                                  <Tab label={<Typography typography='h4' textTransform='none'>Tệp</Typography>} />
+                                                            </Tabs>
                                                       </Box>
                                                 </Box>
 
-                                                <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-start' mb={2}>
-                                                      <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
-                                                            <Typography typography='h5'>Tin nhắn của bạnTin nhắn của bạnTin nhắn của bạnTin nhắn của bạn</Typography>
+                                                <Box component={Container} height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
+                                                      <Grid container width='100%' height='50%' style={{ display: 'flex', height: '20%' }} >
+                                                            <Grid item xs mt={1}>
+                                                                  <ButtonBase disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
+                                                                  <ButtonBase disableTouchRipple><ShareIcon style={{ width: '50px' }} /></ButtonBase>
+                                                                  <ButtonBase disableTouchRipple><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
+                                                                  <ButtonBase disableTouchRipple><ImageIcon style={{ width: '50px' }} /></ButtonBase>
+                                                                  <ButtonBase disableTouchRipple><SentimentSatisfiedAltIcon style={{ width: '50px' }} /></ButtonBase>
+                                                            </Grid>
+                                                            <Grid item xs style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                                  <ButtonBase ><SendIcon style={{ width: '40px' }} /></ButtonBase>
+                                                            </Grid>
+                                                      </Grid>
+                                                      <TextField onKeyPress={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                  this.onSendMessage()
+                                                            }
+                                                      }}
+                                                            value={this.state.newMessage.content}
+                                                            onChange={(e) => this.setState({
+                                                                  newMessage: {
+                                                                        ...this.state.newMessage,
+                                                                        boxChatId: this.state.boxChatCurrent.id,
+                                                                        from: this.props.appState.userCurrent.id ?? '',
+                                                                        to: this.state.userChattingId,
+                                                                        content: e.currentTarget.value,
+                                                                        createAt: new Date(),
+                                                                  }
+                                                            })}
+                                                            placeholder='Nhập tin nhắn mới'
+                                                            variant='outlined'
+                                                      />
+                                                      <Box display='flex' height='70%' flexDirection='column-reverse' alignItems='center' overflow='auto'>
+                                                            {this.state.historyMessage.map((message) =>
+
+                                                                  message.from === this.props.appState.userCurrent.id ?
+                                                                        <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' mb={2}>
+                                                                              <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
+                                                                                    <Typography typography='h5'>{message.content}</Typography>
+                                                                              </Box>
+                                                                        </Box>
+                                                                        :
+                                                                        <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-start' mb={2}>
+                                                                              <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
+                                                                                    <Typography typography='h5'>{message.content}</Typography>
+                                                                              </Box>
+                                                                        </Box>
+                                                            )}
+
+
+
                                                       </Box>
                                                 </Box>
-
-                                          </Box>
-                                    </Box>
-                                    </>) : 
+                                          </>) :
                                           <Box marginX='30%' marginY='20%' borderRadius={4} sx={{ background: 'hsl(120, 100%, 91%)' }} width='30%' display='flex' height='7%' alignItems='center' justifyContent='center'>
-                                               CLICK AT ONE USER TO START CHAT
+                                                CLICK AT ONE USER TO START CHAT
                                           </Box>
-                                   
+
                                     }
                               </Grid>
                         </Grid >
@@ -209,11 +251,39 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       private onChangeRoute = (type: 'message' | 'call' | 'group' | 'live') => {
             this.props.history.push(ClientRouter[type])
       }
-      private onClickChat = () => {
-            this.setState({
-                  isOnChatWithOneUser:true
-            })
+      private onClicktOneUser = async (userId: string) => {
 
+            this.props.appState.socket.emit('get-box-chat', userId, (data: BoxChatPersonal & { listMessage: Array<MessageDetail> }) => {
+                  if (typeof data === 'string') {
+                        toastError('erroor')
+                        return
+                  }
+                  this.setState({
+                        boxChatCurrent: data,
+                        userChattingId: userId,
+                        historyMessage: data.listMessage,
+                        isOnChatWithOneUser: true
+                  })
+
+
+            })
+      }
+      private onSendMessage = async () => {
+            if (this.state.newMessage.content === '') {
+                  return
+            }
+            this.props.appState.socket.emit('send-message', this.state.newMessage, (data: any) => {
+                  if (!data || data === 'error') {
+                        toastError('Gửi tin nhắn thất bại')
+                        return
+                  }
+        
+                  this.setState({
+                        newMessage: MessageDetail.createObj(),
+                        historyMessage: data as Array<MessageDetail>
+                  })
+            })
+            
       }
 }
 export const Message = connectContainer(MessageRaw)

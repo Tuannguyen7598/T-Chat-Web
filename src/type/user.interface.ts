@@ -21,6 +21,7 @@ export class UserDto {
       username: string = ""
       credentials: Credentials 
       role: UserRole = UserRole.user;
+  
       createAt: Date = new Date()
       deleteAt: Date = new Date()
       updateAt: Date = new Date()
@@ -34,9 +35,7 @@ export class UserDto {
       };
 }
 
-export class Message {
-      id: string
-}
+
 export enum UserActonTypeAccount {
       loginSuccess= "Login Success",
       loginFalse= "Login False",

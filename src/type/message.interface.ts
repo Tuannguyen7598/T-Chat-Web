@@ -20,8 +20,8 @@ export interface Reaction {
 }
 export class BoxChatPersonal {
     id: string = uuid()
-    userOne: Pick<UserDto,'id' | 'username'>
-    userTwo: Pick<UserDto,'id' | 'username'>
+    userOneId: string = ''
+    userTwoId: string = ''
     createAt : Date = new Date()
 
     static createObj = (src?: Partial<BoxChatPersonal>): BoxChatPersonal => {
@@ -33,17 +33,20 @@ export class BoxChatPersonal {
   };
 }
 
-export class Message {
+export class MessageDetail {
     id: string = uuid()
     boxChatId: string
+    from:string
+    to:string
     type: TypeMessage = TypeMessage.Text
     content : string = ''
     reaction: Array<Reaction> = []
     createAt : Date = new Date()
     isDelete: boolean = false
+    isSeen: boolean = false
 
-    static createObj = (src?: Partial<Message>): Message => {
-        const obj = new Message();
+    static createObj = (src?: Partial<MessageDetail>): MessageDetail => {
+        const obj = new MessageDetail();
         return {
               ...obj,
               ...src,
