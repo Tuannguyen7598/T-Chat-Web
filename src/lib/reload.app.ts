@@ -14,3 +14,9 @@ export const befor = (userCurrent: UserAction)=> {
         localStorage.setItem('user', JSON.stringify(userOut))
     })
 } 
+export const limitString = (string: string, numberLimit: number):string => {
+    if (string.length > numberLimit) {
+        return `${string.slice(numberLimit)}...`
+    }
+    return string
+}

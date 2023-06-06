@@ -15,6 +15,7 @@ export const App = (props: { baseURL: string; initialState: AppState }):jsx.JSX.
     Axios.defaults.headers.common['Authorization'] = `Bearer ${props.initialState.listUserLocal.find(x => x.isUserCurrent === true)?.accessToken}`
     const [appState, dispatch] = React.useReducer(reducer, props.initialState);
 
+        console.clear()
     return (
         <BrowserRouter>
             <AppContext.Provider value={{ appState, dispatch }}>

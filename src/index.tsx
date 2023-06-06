@@ -1,4 +1,5 @@
 import React from "react";
+import ReactDOM from 'react-dom'
 import { render } from "react-dom";
 import { AppState } from "./appState/AppState";
 import { App } from "./App";
@@ -7,7 +8,7 @@ import { App } from "./App";
 declare const SERVER_API_ENDPOINT: string;
 const baseURL = SERVER_API_ENDPOINT ?? "http://localhost:3000/";
 
-render(<App baseURL={baseURL} initialState={new AppState()} />, document.getElementById("app"));
+render(<App baseURL={baseURL} initialState={new AppState()} />,document.getElementById("app"));
 
 /**
  * (1) Required to enable HMR with webpack dev server

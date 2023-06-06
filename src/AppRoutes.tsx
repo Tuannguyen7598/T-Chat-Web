@@ -2,7 +2,7 @@ import React from "react";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { Socket } from "socket.io-client";
-import { DraphonyToast } from "./Component/Toast";
+
 import { Call } from "./Container/DashBroad/Call";
 import { Group } from "./Container/DashBroad/Group";
 import { Live } from "./Container/DashBroad/Live";
@@ -12,6 +12,7 @@ import { IPageProps, connectContainer } from "./ContainerBase";
 import { ClientRouter } from "./Routers";
 import "./app.scss";
 import { UserAction } from "./appState/user";
+import { Toast } from "./Component/Toast";
 
 
 export interface IState {
@@ -42,11 +43,11 @@ class AppRoutesRaw extends React.Component<IPageProps, IState> {
             userCurrent: this.props.appState.userCurrent
 
         })
-        
+    
     }
 
     render(): JSX.Element {
-
+        
         return (
             <>
 
@@ -62,7 +63,7 @@ class AppRoutesRaw extends React.Component<IPageProps, IState> {
 
 
                     </Switch>
-                    <DraphonyToast />
+                    <Toast />
                 </Router>
                 {/* {
                     <Router history={this.props.history}>

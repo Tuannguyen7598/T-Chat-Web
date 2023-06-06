@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import Axios, { AxiosError } from "axios";
 import React from "react";
 import { MyAlert } from '../../Component/Alert';
-import { DraphonyToast } from '../../Component/Toast';
+
 import { toastSuccess } from '../../Component/ToastMessage';
 import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from "../../Routers";
@@ -72,7 +72,7 @@ class LoginRaw extends React.Component<IPageProps, IState> {
 
       }}>
 
-        <DraphonyToast />
+        
 
         <CssBaseline />
         <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', width: "500px" }} >

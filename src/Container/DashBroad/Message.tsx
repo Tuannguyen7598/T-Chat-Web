@@ -13,7 +13,7 @@ import Axios from 'axios';
 import React from "react";
 import { Header } from "../../Component/Header";
 import { Navigation } from '../../Component/Navigation';
-import { toastError, toastSuccess } from '../../Component/ToastMessage';
+import { toastError } from '../../Component/ToastMessage';
 import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
 import { UserDto } from '../../type';
@@ -69,7 +69,7 @@ export interface IState {
       userChattingId: string
       historyMessage: Array<MessageDetail>
       newMessage: MessageDetail
-      boxChatCurrent: BoxChatPersonal & {listMessage: Array<MessageDetail>}
+      boxChatCurrent: BoxChatPersonal & { listMessage: Array<MessageDetail> }
       listUserIsNewMessage: Array<string>
 }
 export class MessageRaw extends React.Component<IPageProps, IState> {
@@ -83,22 +83,21 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                   historyMessage: [],
                   userChattingId: '',
                   newMessage: MessageDetail.createObj(),
-                  boxChatCurrent: {...BoxChatPersonal.createObj(),listMessage:[]},
-                  listUserIsNewMessage:[]
+                  boxChatCurrent: { ...BoxChatPersonal.createObj(), listMessage: [] },
+                  listUserIsNewMessage: []
 
 
             }
       }
       async componentDidMount() {
-        
+
             const listUser = await Axios.get<Array<Omit<UserDto, 'credentials'>>>(ServerRouter.getUser)
-            const getListUserIsNewMessage = this.props.appState.socket.emit('get-is-seen',(data:Array<string>)=> {
+            const getListUserIsNewMessage = this.props.appState.socket.emit('get-is-seen', (data: Array<string>) => {
                   this.setState({
                         listUserIsNewMessage: data
                   })
-                  
-            })
 
+            })
 
             this.setState({
                   listUser: listUser.data.filter((x) => x.id !== this.props.appState.userCurrent.id),
@@ -107,16 +106,32 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       }
 
       render() {
+            let count = 0
+            const updateNewMessageIsSeen = this.props.appState.socket.on('new-message-is-not-seen', (data: Array<string>) => {
+                  this.setState({ listUserIsNewMessage: data })
 
 
+            })
             this.props.appState.socket.on('newUserOnline', (data: Array<ListSocketOnConnect>) => {
                   this.setState({ listIdUserOnline: data })
             })
-            this.props.appState.socket.on('recive-message', (data: Array<MessageDetail>) => {
-                  this.setState({ historyMessage: data })
+            this.props.appState.socket.on('recive-message', (data: { listMessage: Array<MessageDetail>, listMessageIsNotSeen: Array<string> }) => {
+
+                  if (!data.listMessage) {
+                        this.setState({ listUserIsNewMessage: data.listMessageIsNotSeen })
+                        return
+                  }
+                  this.setState({
+                        listUserIsNewMessage: data.listMessageIsNotSeen,
+                        historyMessage: data.listMessage,
+                  })
+
+
             })
+
+
             const listUserOnline = this.state.listUser.filter((user) => this.state.listIdUserOnline.findIndex((data) => data.userId === user.id) !== -1)
-          
+
             return (
                   <>
                         <Header />
@@ -133,7 +148,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                           </Box>
                                           <Typography typography='h3' ml={1} >Message</Typography>
                                           <ButtonBase style={{ height: '50%' }}><ArrowDropDownIcon /></ButtonBase>
-                                          <ButtonBase style={{ height: '50%', marginLeft: 110 }}><FilterListIcon /></ButtonBase>
+                                          <ButtonBase style={{ height: '50%', marginLeft: 110 }} onClick={() => console.log(this.state.listUserIsNewMessage)}><FilterListIcon /></ButtonBase>
                                     </Box>
 
                                     <Box height='100%' mt='2px'>
@@ -149,9 +164,9 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                             <CustomAvatarWrapper online={listUserOnline.findIndex((y) => y.id === x.id) !== -1 ? true : false} src='./assets/tesst.png' />
                                                             <Box ml={1} width='75%'>
                                                                   <Typography typography='h4' align='left'>{x.username}</Typography>
-                                                                  <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>{}</Typography>
+                                                                  <Typography typography='h5' style={{ display: 'flex', marginTop: 4 }}>{ }</Typography>
                                                             </Box>
-                                                            <StatusIndicator online={this.state.listUserIsNewMessage.findIndex((z)=> x.id === z) !== -1 ? true : false  } />
+                                                            <StatusIndicator online={this.state.listUserIsNewMessage.findIndex((z) => x.id === z) !== -1 ? true : false} />
                                                       </Box>
                                                 </ButtonBase>
                                           )}
@@ -168,12 +183,12 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     {this.state.isOnChatWithOneUser ?
                                           (<>
                                                 <Box width='100%' boxShadow={1} display='flex' alignItems='center' height='50px' >
-                                                      <Box display='flex' alignItems='center' ml={2} width='15%'>
+                                                      <Box display='flex' alignItems='center' ml={2} width='15%' marginLeft={15}>
                                                             <Avatar
                                                                   style={{ marginLeft: 10 }}
                                                                   src='' />
                                                             <Box ml={1} width='100%'>
-                                                                  <Typography typography='h4'>{this.state.listUser.find((x)=> x.id === this.state.userChattingId)?.username}</Typography>
+                                                                  <Typography typography='h4'>{this.state.listUser.find((x) => x.id === this.state.userChattingId)?.username}</Typography>
                                                             </Box>
                                                       </Box>
                                                       <Box sx={{ height: '100%', width: '90%' }} >
@@ -217,21 +232,42 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                             variant='outlined'
                                                       />
                                                       <Box display='flex' height='70%' flexDirection='column-reverse' alignItems='center' overflow='auto'>
-                                                            {this.state.historyMessage.map((message) =>
+                                                            {this.state.historyMessage.map((message, index) => {
+                                                                  if (message.isSeen && count === index && message.from === this.props.appState.userCurrent.id) {
 
-                                                                  message.from === this.props.appState.userCurrent.id ?
-                                                                        <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' mb={2}>
+                                                                        return <>
+                                                                              <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' ><Avatar
+                                                                                    style={{height:'15px',width:'15px'}}
+                                                                                    src='' /></Box>
+                                                                              <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' mb={1}>
+
+                                                                                    <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
+                                                                                          <Typography typography='h5'>{message.content}11221</Typography>
+                                                                                    </Box>
+
+                                                                              </Box>
+
+                                                                        </>
+                                                                  }
+                                                                  if (message.from === this.props.appState.userCurrent.id) {
+                                                                        if (!message.isSeen) {
+                                                                              count++
+                                                                        }
+                                                                        return <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' mb={2}>
                                                                               <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
                                                                                     <Typography typography='h5'>{message.content}</Typography>
                                                                               </Box>
+
                                                                         </Box>
-                                                                        :
-                                                                        <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-start' mb={2}>
-                                                                              <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
-                                                                                    <Typography typography='h5'>{message.content}</Typography>
-                                                                              </Box>
+                                                                  }
+                                                                  return <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-start' mb={2}>
+                                                                        <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
+                                                                              <Typography typography='h5'>{message.content}</Typography>
                                                                         </Box>
-                                                            )}
+                                                                  </Box>
+
+
+                                                            })}
 
 
 
@@ -253,7 +289,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       }
       private onClicktOneUser = async (userId: string) => {
 
-            this.props.appState.socket.emit('get-box-chat', userId, (data: BoxChatPersonal & { listMessage: Array<MessageDetail> }) => {
+            this.props.appState.socket.emit('get-box-chat', userId, (data: BoxChatPersonal & { listMessage: Array<MessageDetail>, listMessageIsNotSeen: Array<string> }) => {
                   if (typeof data === 'string') {
                         toastError('erroor')
                         return
@@ -262,7 +298,9 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                         boxChatCurrent: data,
                         userChattingId: userId,
                         historyMessage: data.listMessage,
-                        isOnChatWithOneUser: true
+                        isOnChatWithOneUser: true,
+                        listUserIsNewMessage: data.listMessageIsNotSeen
+
                   })
 
 
@@ -277,13 +315,13 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                         toastError('Gửi tin nhắn thất bại')
                         return
                   }
-        
+
                   this.setState({
                         newMessage: MessageDetail.createObj(),
                         historyMessage: data as Array<MessageDetail>
                   })
             })
-            
+
       }
 }
 export const Message = connectContainer(MessageRaw)
