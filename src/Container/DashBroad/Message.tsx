@@ -10,7 +10,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Avatar, Box, ButtonBase, Container, Grid, Tab, Tabs, TextField, Typography } from "@mui/material";
 import Axios from 'axios';
-import React from "react";
+import React, { createRef, useRef } from "react";
 import { Header } from "../../Component/Header";
 import { Navigation } from '../../Component/Navigation';
 import { toastError } from '../../Component/ToastMessage';
@@ -18,6 +18,9 @@ import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
 import { UserDto } from '../../type';
 import { BoxChatPersonal, MessageDetail } from '../../type/message.interface';
+import MessengerChatOptions, { emojiList } from '../../Component/Emoji';
+import { EmojiEmotions } from '@mui/icons-material';
+import EmojiPicker from '../../Component/Emoji';
 
 
 export interface propsAvatar {
@@ -73,6 +76,8 @@ export interface IState {
       listUserIsNewMessage: Array<string>
 }
 export class MessageRaw extends React.Component<IPageProps, IState> {
+
+      textFieldRef:any = createRef()
       constructor(props: IPageProps) {
             super(props)
             this.state = {
@@ -88,6 +93,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
             }
+            
       }
       async componentDidMount() {
 
@@ -104,6 +110,16 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             })
 
       }
+      componentDidUpdate() {
+          
+          }
+          handleClick = () => {
+            // Xử lý logic của bạn
+            // ...
+        
+            // Tập trung vào TextField sau khi xử lý
+            this.textFieldRef.focus();
+          };
 
       render() {
             let count = 0
@@ -131,7 +147,6 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
             const listUserOnline = this.state.listUser.filter((user) => this.state.listIdUserOnline.findIndex((data) => data.userId === user.id) !== -1)
-
             return (
                   <>
                         <Header />
@@ -154,7 +169,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     <Box height='100%' mt='2px'>
 
                                           {this.state.listUser.map((x) =>
-                                                <ButtonBase key={x.id} onClick={(e) => {
+                                                <ButtonBase  key={x.id} onClick={(e) => {
                                                       if (e.ctrlKey === true) {
                                                             return
                                                       }
@@ -202,28 +217,37 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                 <Box component={Container} height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
                                                       <Grid container width='100%' height='50%' style={{ display: 'flex', height: '20%' }} >
                                                             <Grid item xs mt={1}>
-                                                                  <ButtonBase disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
+                                                                  <ButtonBase onClick={()=>this.handleClick()} disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
                                                                   <ButtonBase disableTouchRipple><ShareIcon style={{ width: '50px' }} /></ButtonBase>
                                                                   <ButtonBase disableTouchRipple><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
                                                                   <ButtonBase disableTouchRipple><ImageIcon style={{ width: '50px' }} /></ButtonBase>
-                                                                  <ButtonBase disableTouchRipple><SentimentSatisfiedAltIcon style={{ width: '50px' }} /></ButtonBase>
+                                                                  <ButtonBase   disableTouchRipple><EmojiPicker  
+                                                                        
+                                                                        onClickEmoji={
+                                                                              (index:number)=>
+                                                                              this.setState({newMessage:{...this.state.newMessage,
+                                                                              content: this.state.newMessage.content.concat(emojiList.find((x,y)=> y ===index )?? '' )}})}
+                                                                        
+                                                                        /></ButtonBase>
                                                             </Grid>
                                                             <Grid item xs style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                                                   <ButtonBase ><SendIcon style={{ width: '40px' }} /></ButtonBase>
                                                             </Grid>
                                                       </Grid>
-                                                      <TextField onKeyPress={(e) => {
+                                                    
+                                                      <TextField 
+                                                      
+                                                      
+                                                      onKeyPress={(e:any) => {
                                                             if (e.key === 'Enter') {
                                                                   this.onSendMessage()
                                                             }
                                                       }}
                                                             value={this.state.newMessage.content}
-                                                            onChange={(e) => this.setState({
+                                                            onChange={(e:any) => this.setState({
                                                                   newMessage: {
                                                                         ...this.state.newMessage,
                                                                         boxChatId: this.state.boxChatCurrent.id,
-                                                                        from: this.props.appState.userCurrent.id ?? '',
-                                                                        to: this.state.userChattingId,
                                                                         content: e.currentTarget.value,
                                                                         createAt: new Date(),
                                                                   }
@@ -231,6 +255,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                             placeholder='Nhập tin nhắn mới'
                                                             variant='outlined'
                                                       />
+                                                      
                                                       <Box display='flex' height='70%' flexDirection='column-reverse' alignItems='center' overflow='auto'>
                                                             {this.state.historyMessage.map((message, index) => {
                                                                   if (message.isSeen && count === index && message.from === this.props.appState.userCurrent.id) {
@@ -299,23 +324,34 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                         userChattingId: userId,
                         historyMessage: data.listMessage,
                         isOnChatWithOneUser: true,
-                        listUserIsNewMessage: data.listMessageIsNotSeen
-
+                        listUserIsNewMessage: data.listMessageIsNotSeen,
+                        newMessage: {...this.state.newMessage,to: userId}
                   })
 
 
             })
       }
       private onSendMessage = async () => {
-            if (this.state.newMessage.content === '') {
+            
+            
+            if (this.state.newMessage.content.length === 0) {
                   return
             }
-            this.props.appState.socket.emit('send-message', this.state.newMessage, (data: any) => {
+            const message:MessageDetail = {
+                  ...this.state.newMessage,
+                  boxChatId: this.state.boxChatCurrent.id,
+                  from: this.props.appState.userCurrent.id ??'',
+                  to: this.state.userChattingId
+
+            }
+            this.props.appState.socket.emit('send-message', message, (data: any) => {
+
                   if (!data || data === 'error') {
                         toastError('Gửi tin nhắn thất bại')
                         return
                   }
-
+                 
+                  
                   this.setState({
                         newMessage: MessageDetail.createObj(),
                         historyMessage: data as Array<MessageDetail>
