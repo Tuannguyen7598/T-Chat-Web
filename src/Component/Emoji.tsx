@@ -9,7 +9,7 @@ export const emojiList = [
 
 interface prop{
   onClickEmoji: (index:number)=> void
- 
+  onClose : () => void
  
 }
 const EmojiPicker = (prop: prop) => {
@@ -21,7 +21,7 @@ const EmojiPicker = (prop: prop) => {
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
-   
+   prop.onClose()
   };
 
   const handleEmojiClick = (index:number) => {
@@ -30,7 +30,7 @@ const EmojiPicker = (prop: prop) => {
   };
 
   return (
-    <Box>
+    
     <Grid container spacing={1} alignItems="center">
       <Grid item>
         <IconButton onClick={handleOpenMenu}>
@@ -62,7 +62,7 @@ const EmojiPicker = (prop: prop) => {
         </Grid>
       </Menu>
     </Grid>
-    </Box>
+   
   );
 };
 

@@ -5,12 +5,12 @@ import ChatIcon from '@mui/icons-material/Chat';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ImageIcon from '@mui/icons-material/Image';
 import SendIcon from '@mui/icons-material/Send';
-import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
 import ShareIcon from '@mui/icons-material/Share';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Avatar, Box, ButtonBase, Container, Grid, Tab, Tabs, TextField, Typography } from "@mui/material";
 import Axios from 'axios';
-import React, { createRef, useRef } from "react";
+import React from "react";
+import EmojiPicker, { emojiList } from '../../Component/Emoji';
 import { Header } from "../../Component/Header";
 import { Navigation } from '../../Component/Navigation';
 import { toastError } from '../../Component/ToastMessage';
@@ -18,9 +18,7 @@ import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
 import { UserDto } from '../../type';
 import { BoxChatPersonal, MessageDetail } from '../../type/message.interface';
-import MessengerChatOptions, { emojiList } from '../../Component/Emoji';
-import { EmojiEmotions } from '@mui/icons-material';
-import EmojiPicker from '../../Component/Emoji';
+import { TypeMessage } from '../../type/message.interface';
 
 
 export interface propsAvatar {
@@ -76,8 +74,8 @@ export interface IState {
       listUserIsNewMessage: Array<string>
 }
 export class MessageRaw extends React.Component<IPageProps, IState> {
-
-      textFieldRef:any = createRef()
+      fileInputRed: any
+      textFieldRef: any
       constructor(props: IPageProps) {
             super(props)
             this.state = {
@@ -93,8 +91,12 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
             }
-            
+            this.textFieldRef = React.createRef()
+            this.fileInputRed = React.createRef()
       }
+  
+    
+
       async componentDidMount() {
 
             const listUser = await Axios.get<Array<Omit<UserDto, 'credentials'>>>(ServerRouter.getUser)
@@ -111,15 +113,8 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
       }
       componentDidUpdate() {
-          
-          }
-          handleClick = () => {
-            // Xử lý logic của bạn
-            // ...
-        
-            // Tập trung vào TextField sau khi xử lý
-            this.textFieldRef.focus();
-          };
+
+      }
 
       render() {
             let count = 0
@@ -169,7 +164,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                     <Box height='100%' mt='2px'>
 
                                           {this.state.listUser.map((x) =>
-                                                <ButtonBase  key={x.id} onClick={(e) => {
+                                                <ButtonBase key={x.id} onClick={(e) => {
                                                       if (e.ctrlKey === true) {
                                                             return
                                                       }
@@ -217,34 +212,45 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                 <Box component={Container} height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
                                                       <Grid container width='100%' height='50%' style={{ display: 'flex', height: '20%' }} >
                                                             <Grid item xs mt={1}>
-                                                                  <ButtonBase onClick={()=>this.handleClick()} disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
+                                                                  <ButtonBase disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
                                                                   <ButtonBase disableTouchRipple><ShareIcon style={{ width: '50px' }} /></ButtonBase>
                                                                   <ButtonBase disableTouchRipple><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
-                                                                  <ButtonBase disableTouchRipple><ImageIcon style={{ width: '50px' }} /></ButtonBase>
-                                                                  <ButtonBase   disableTouchRipple><EmojiPicker  
-                                                                        
+                                                                  <ButtonBase onClick={this.handleButtonClick} disableTouchRipple><ImageIcon style={{ width: '50px' }} />
+                                                                  </ButtonBase>
+                                                                  <ButtonBase onClick={this.handleFocusTextFiled} disableTouchRipple><EmojiPicker
+                                                                        onClose={() => this.handleFocusTextFiled}
                                                                         onClickEmoji={
-                                                                              (index:number)=>
-                                                                              this.setState({newMessage:{...this.state.newMessage,
-                                                                              content: this.state.newMessage.content.concat(emojiList.find((x,y)=> y ===index )?? '' )}})}
-                                                                        
-                                                                        /></ButtonBase>
+                                                                              (index: number) =>
+                                                                                    this.setState({
+                                                                                          newMessage: {
+                                                                                                ...this.state.newMessage,
+                                                                                                content: this.state.newMessage.content.concat(emojiList.find((x, y) => y === index) ?? '')
+                                                                                          }
+                                                                                    })}
+
+                                                                  /></ButtonBase>
+                                                                  <input
+                                                                        type='file'
+                                                                        style={{ display: 'none' }}
+                                                                        ref={this.fileInputRed}
+                                                                        onChange={this.handleFileSelect}
+                                                                  />
                                                             </Grid>
                                                             <Grid item xs style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                                                   <ButtonBase ><SendIcon style={{ width: '40px' }} /></ButtonBase>
                                                             </Grid>
                                                       </Grid>
-                                                    
-                                                      <TextField 
-                                                      
-                                                      
-                                                      onKeyPress={(e:any) => {
-                                                            if (e.key === 'Enter') {
-                                                                  this.onSendMessage()
-                                                            }
-                                                      }}
+
+                                                      <TextField
+
+
+                                                            onKeyPress={(e: any) => {
+                                                                  if (e.key === 'Enter') {
+                                                                        this.onSendMessage()
+                                                                  }
+                                                            }}
                                                             value={this.state.newMessage.content}
-                                                            onChange={(e:any) => this.setState({
+                                                            onChange={(e: any) => this.setState({
                                                                   newMessage: {
                                                                         ...this.state.newMessage,
                                                                         boxChatId: this.state.boxChatCurrent.id,
@@ -252,17 +258,22 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                                         createAt: new Date(),
                                                                   }
                                                             })}
+                                                            inputProps={{
+                                                                  style: { textAlign: 'left' }
+                                                            }}
+                                                            onFocus={this.handleFocusTextFiled}
+                                                            inputRef={this.textFieldRef}
                                                             placeholder='Nhập tin nhắn mới'
                                                             variant='outlined'
                                                       />
-                                                      
+
                                                       <Box display='flex' height='70%' flexDirection='column-reverse' alignItems='center' overflow='auto'>
                                                             {this.state.historyMessage.map((message, index) => {
                                                                   if (message.isSeen && count === index && message.from === this.props.appState.userCurrent.id) {
 
                                                                         return <>
                                                                               <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' ><Avatar
-                                                                                    style={{height:'15px',width:'15px'}}
+                                                                                    style={{ height: '15px', width: '15px' }}
                                                                                     src='' /></Box>
                                                                               <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' mb={1}>
 
@@ -325,22 +336,22 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                         historyMessage: data.listMessage,
                         isOnChatWithOneUser: true,
                         listUserIsNewMessage: data.listMessageIsNotSeen,
-                        newMessage: {...this.state.newMessage,to: userId}
+                        newMessage: { ...this.state.newMessage, to: userId }
                   })
 
 
             })
       }
       private onSendMessage = async () => {
-            
-            
+
+
             if (this.state.newMessage.content.length === 0) {
                   return
             }
-            const message:MessageDetail = {
+            const message: MessageDetail = {
                   ...this.state.newMessage,
                   boxChatId: this.state.boxChatCurrent.id,
-                  from: this.props.appState.userCurrent.id ??'',
+                  from: this.props.appState.userCurrent.id ?? '',
                   to: this.state.userChattingId
 
             }
@@ -350,8 +361,8 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                         toastError('Gửi tin nhắn thất bại')
                         return
                   }
-                 
-                  
+
+
                   this.setState({
                         newMessage: MessageDetail.createObj(),
                         historyMessage: data as Array<MessageDetail>
@@ -359,5 +370,45 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             })
 
       }
+
+      private  handleFileSelect = (event:any) => {
+            const file = event.target.files[0];
+            if (!file ||  file.name.toLowerCase().lastIndexOf('.') === -1) {
+                  toastError('Please chose the image')
+                 return 
+            }
+            const fileExtension = file.name.split('.').pop().toLowerCase()
+            if (fileExtension !== 'png' && fileExtension !== 'jqg' && fileExtension!=='gif') {
+                  toastError('Please chose the image')
+                  return
+            }
+            const newMessage:MessageDetail = {...this.state.newMessage,
+                  type: TypeMessage.Image
+            }
+            const payload = {
+                  file: file,
+                  message: newMessage
+            }
+            this.props.appState.socket.emit('upload-image',payload,(data:any)=>{
+                  console.log(data);
+                  
+            })
+            
+            
+      };
+
+      private handleFocusTextFiled = () => {
+            const input = this.textFieldRef.current;
+
+            // Đặt con trỏ ở vị trí cuối cùng của nội dung văn bản
+            const textLength = input.value.length;
+            input.setSelectionRange(textLength, textLength);
+
+            input.focus();
+      };
+
+      private handleButtonClick = () => {
+            this.fileInputRed.current.click();
+      };
 }
 export const Message = connectContainer(MessageRaw)
