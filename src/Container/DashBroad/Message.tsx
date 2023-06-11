@@ -63,6 +63,7 @@ const StatusIndicator = styled('div')`
   background-color: ${(props: propsAvatar) => (props.online ? '#0000ff' : '#fff')};
 `;
 export interface IState {
+      img:any
       value: number
       listIdUserOnline: Array<ListSocketOnConnect>
       listUser: Array<Omit<UserDto, 'credentials'>>
@@ -79,6 +80,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       constructor(props: IPageProps) {
             super(props)
             this.state = {
+                  img:'',
                   value: 0,
                   listIdUserOnline: [],
                   listUser: [],
@@ -158,6 +160,9 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                           </Box>
                                           <Typography typography='h3' ml={1} >Message</Typography>
                                           <ButtonBase style={{ height: '50%' }}><ArrowDropDownIcon /></ButtonBase>
+                                          <img
+                                                src={this.state.img}
+                                                />
                                           <ButtonBase style={{ height: '50%', marginLeft: 110 }} onClick={() => console.log(this.state.listUserIsNewMessage)}><FilterListIcon /></ButtonBase>
                                     </Box>
 
@@ -231,9 +236,11 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                                   /></ButtonBase>
                                                                   <input
                                                                         type='file'
+                                                                        accept=".png,.img"
                                                                         style={{ display: 'none' }}
                                                                         ref={this.fileInputRed}
                                                                         onChange={this.handleFileSelect}
+                                                                        
                                                                   />
                                                             </Grid>
                                                             <Grid item xs style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -311,7 +318,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                 </Box>
                                           </>) :
                                           <Box marginX='30%' marginY='20%' borderRadius={4} sx={{ background: 'hsl(120, 100%, 91%)' }} width='30%' display='flex' height='7%' alignItems='center' justifyContent='center'>
-                                                CLICK AT ONE USER TO START CHAT
+                                                
                                           </Box>
 
                                     }
@@ -372,7 +379,11 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       }
 
       private  handleFileSelect = (event:any) => {
-            const file = event.target.files[0];
+            const file = event.target.files[0]; 
+            console.log(file)
+            if (!file) {
+                  return
+            }
             if (!file ||  file.name.toLowerCase().lastIndexOf('.') === -1) {
                   toastError('Please chose the image')
                  return 
@@ -385,14 +396,30 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             const newMessage:MessageDetail = {...this.state.newMessage,
                   type: TypeMessage.Image
             }
-            const payload = {
-                  file: file,
-                  message: newMessage
-            }
-            this.props.appState.socket.emit('upload-image',payload,(data:any)=>{
-                  console.log(data);
+            const reader = new FileReader()
+      //      const payload = {
+      //       fileName: file.name,
+      //       fileData: file
+      //      }
+            // this.props.appState.socket.emit('upload-image',payload,(data:any)=>{
+            //       console.log(data);
                   
-            })
+            // })
+            reader.onload = (event: any) => {
+                  const fileData = event.target.result;
+                  const fileName = file.name;
+                  const payload = {
+                        fileName,
+                        fileData
+                  }
+                  this.setState({img: fileData})
+                  this.props.appState.socket.emit('upload-image',payload,(data:any)=>{
+                        console.log(data);
+                        
+                  })
+            }
+            reader.readAsDataURL(file)
+           
             
             
       };
