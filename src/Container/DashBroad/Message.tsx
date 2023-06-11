@@ -17,8 +17,7 @@ import { toastError } from '../../Component/ToastMessage';
 import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
 import { UserDto } from '../../type';
-import { BoxChatPersonal, MessageDetail } from '../../type/message.interface';
-import { TypeMessage } from '../../type/message.interface';
+import { BoxChatPersonal, MessageDetail, TypeMessage } from '../../type/message.interface';
 
 
 export interface propsAvatar {
@@ -63,7 +62,7 @@ const StatusIndicator = styled('div')`
   background-color: ${(props: propsAvatar) => (props.online ? '#0000ff' : '#fff')};
 `;
 export interface IState {
-      img:any
+      img: any
       value: number
       listIdUserOnline: Array<ListSocketOnConnect>
       listUser: Array<Omit<UserDto, 'credentials'>>
@@ -80,7 +79,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       constructor(props: IPageProps) {
             super(props)
             this.state = {
-                  img:'',
+                  img: '',
                   value: 0,
                   listIdUserOnline: [],
                   listUser: [],
@@ -96,8 +95,8 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             this.textFieldRef = React.createRef()
             this.fileInputRed = React.createRef()
       }
-  
-    
+
+
 
       async componentDidMount() {
 
@@ -160,9 +159,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                           </Box>
                                           <Typography typography='h3' ml={1} >Message</Typography>
                                           <ButtonBase style={{ height: '50%' }}><ArrowDropDownIcon /></ButtonBase>
-                                          <img
-                                                src={this.state.img}
-                                                />
+
                                           <ButtonBase style={{ height: '50%', marginLeft: 110 }} onClick={() => console.log(this.state.listUserIsNewMessage)}><FilterListIcon /></ButtonBase>
                                     </Box>
 
@@ -240,39 +237,74 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                                         style={{ display: 'none' }}
                                                                         ref={this.fileInputRed}
                                                                         onChange={this.handleFileSelect}
-                                                                        
+
                                                                   />
                                                             </Grid>
                                                             <Grid item xs style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                                                   <ButtonBase ><SendIcon style={{ width: '40px' }} /></ButtonBase>
                                                             </Grid>
                                                       </Grid>
+                                                      {this.state.newMessage.type === TypeMessage.Image ?
 
-                                                      <TextField
+                                                            <TextField
+                                                                  onKeyPress={(e: any) => {
+                                                                        if (e.key === 'Enter') {
+                                                                              this.onSendMessageFile()
+                                                                        }
+                                                                  }}
+
+                                                                  InputProps={{
+                                                                        startAdornment: (
+                                                                              <img
+                                                                                    src={this.state.img}
+                                                                                    alt="Selected Image"
+                                                                                    style={{ height: '100px', objectFit: 'scale-down' }}
+                                                                              />
+                                                                        ),
+                                                                  }}
+                                                                  onChange={(e: any) => this.setState({
+                                                                        newMessage: {
+                                                                              ...this.state.newMessage,
+                                                                              boxChatId: this.state.boxChatCurrent.id,
+                                                                              content: e.currentTarget.value,
+                                                                              createAt: new Date(),
+                                                                              pathImg:''
+                                                                        }
+                                                                  })}
+
+                                                                  onFocus={this.handleFocusTextFiled}
+                                                                  inputRef={this.textFieldRef}
+
+                                                                  variant='outlined'
+                                                            />
+                                                            :
+                                                            <TextField
+                                                                  onKeyPress={(e: any) => {
+                                                                        if (e.key === 'Enter') {
+                                                                              this.onSendMessage()
+                                                                        }
+                                                                  }}
+
+                                                                  value={this.state.newMessage.content}
+                                                                  onChange={(e: any) => this.setState({
+                                                                        newMessage: {
+                                                                              ...this.state.newMessage,
+                                                                              boxChatId: this.state.boxChatCurrent.id,
+                                                                              content: e.currentTarget.value,
+                                                                              createAt: new Date(),
+                                                                        }
+                                                                  })}
+                                                                  inputProps={{
+                                                                        style: { textAlign: 'left' }
+                                                                  }}
+                                                                  onFocus={this.handleFocusTextFiled}
+                                                                  inputRef={this.textFieldRef}
+                                                                  placeholder='Nhập tin nhắn mới'
+                                                                  variant='outlined'
+                                                            />
+                                                      }
 
 
-                                                            onKeyPress={(e: any) => {
-                                                                  if (e.key === 'Enter') {
-                                                                        this.onSendMessage()
-                                                                  }
-                                                            }}
-                                                            value={this.state.newMessage.content}
-                                                            onChange={(e: any) => this.setState({
-                                                                  newMessage: {
-                                                                        ...this.state.newMessage,
-                                                                        boxChatId: this.state.boxChatCurrent.id,
-                                                                        content: e.currentTarget.value,
-                                                                        createAt: new Date(),
-                                                                  }
-                                                            })}
-                                                            inputProps={{
-                                                                  style: { textAlign: 'left' }
-                                                            }}
-                                                            onFocus={this.handleFocusTextFiled}
-                                                            inputRef={this.textFieldRef}
-                                                            placeholder='Nhập tin nhắn mới'
-                                                            variant='outlined'
-                                                      />
 
                                                       <Box display='flex' height='70%' flexDirection='column-reverse' alignItems='center' overflow='auto'>
                                                             {this.state.historyMessage.map((message, index) => {
@@ -318,7 +350,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                 </Box>
                                           </>) :
                                           <Box marginX='30%' marginY='20%' borderRadius={4} sx={{ background: 'hsl(120, 100%, 91%)' }} width='30%' display='flex' height='7%' alignItems='center' justifyContent='center'>
-                                                
+
                                           </Box>
 
                                     }
@@ -378,52 +410,58 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
       }
 
-      private  handleFileSelect = (event:any) => {
-            const file = event.target.files[0]; 
-            console.log(file)
+      private handleFileSelect = (event: any) => {
+            const file = event.target.files[0];
+
             if (!file) {
                   return
             }
-            if (!file ||  file.name.toLowerCase().lastIndexOf('.') === -1) {
-                  toastError('Please chose the image')
-                 return 
-            }
-            const fileExtension = file.name.split('.').pop().toLowerCase()
-            if (fileExtension !== 'png' && fileExtension !== 'jqg' && fileExtension!=='gif') {
+            if (!file || file.name.toLowerCase().lastIndexOf('.') === -1) {
                   toastError('Please chose the image')
                   return
             }
-            const newMessage:MessageDetail = {...this.state.newMessage,
-                  type: TypeMessage.Image
+            const fileExtension = file.name.split('.').pop().toLowerCase()
+            if (fileExtension !== 'png' && fileExtension !== 'jqg' && fileExtension !== 'gif') {
+                  toastError('Please chose the image')
+                  return
+            }
+            const newMessage: MessageDetail = {
+                  ...this.state.newMessage,
+                  type: TypeMessage.Image,
+                  from: this.props.appState.userCurrent.id ?? ''
             }
             const reader = new FileReader()
-      //      const payload = {
-      //       fileName: file.name,
-      //       fileData: file
-      //      }
-            // this.props.appState.socket.emit('upload-image',payload,(data:any)=>{
-            //       console.log(data);
-                  
-            // })
+
             reader.onload = (event: any) => {
                   const fileData = event.target.result;
                   const fileName = file.name;
                   const payload = {
+                        message: newMessage,
                         fileName,
                         fileData
                   }
-                  this.setState({img: fileData})
-                  this.props.appState.socket.emit('upload-image',payload,(data:any)=>{
-                        console.log(data);
-                        
-                  })
+
+
+                  this.setState({ img: fileData,newMessage: {...this.state.newMessage,type: TypeMessage.Image} })
+                 
             }
             reader.readAsDataURL(file)
-           
-            
-            
-      };
 
+
+
+      };
+       private onSendMessageFile = () => {
+
+            const payload = {
+                  message: this.state.newMessage,
+                  fileData:this.state.img,
+                  fileName: '2'
+            }
+            this.props.appState.socket.emit('upload-image', payload, (data: any) => {
+                  console.log(data);
+
+            })
+       }
       private handleFocusTextFiled = () => {
             const input = this.textFieldRef.current;
 
