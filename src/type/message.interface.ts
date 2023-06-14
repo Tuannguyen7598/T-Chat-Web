@@ -39,7 +39,7 @@ export class MessageDetail {
     from:string
     to:string
     type: TypeMessage = TypeMessage.Text
-    pathImg:string = ''
+    pathImg:Array<string> = []
     content : string = ''
     reaction: Array<Reaction> = []
     createAt : Date = new Date()

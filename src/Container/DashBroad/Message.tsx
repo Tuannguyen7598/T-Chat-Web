@@ -3,6 +3,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ChatIcon from '@mui/icons-material/Chat';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import ImageIcon from '@mui/icons-material/Image';
 import SendIcon from '@mui/icons-material/Send';
 import ShareIcon from '@mui/icons-material/Share';
@@ -18,7 +19,10 @@ import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
 import { UserDto } from '../../type';
 import { BoxChatPersonal, MessageDetail, TypeMessage } from '../../type/message.interface';
-
+export interface Image {
+      urlImage: any
+      formData: any
+}
 
 export interface propsAvatar {
       online: boolean
@@ -62,7 +66,7 @@ const StatusIndicator = styled('div')`
   background-color: ${(props: propsAvatar) => (props.online ? '#0000ff' : '#fff')};
 `;
 export interface IState {
-      img: any
+      img: Array<Image>
       value: number
       listIdUserOnline: Array<ListSocketOnConnect>
       listUser: Array<Omit<UserDto, 'credentials'>>
@@ -79,7 +83,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       constructor(props: IPageProps) {
             super(props)
             this.state = {
-                  img: '',
+                  img: [],
                   value: 0,
                   listIdUserOnline: [],
                   listUser: [],
@@ -118,6 +122,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
       }
 
       render() {
+            console.log(this.state.img);
             let count = 0
             const updateNewMessageIsSeen = this.props.appState.socket.on('new-message-is-not-seen', (data: Array<string>) => {
                   this.setState({ listUserIsNewMessage: data })
@@ -236,7 +241,10 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                                         accept=".png,.img"
                                                                         style={{ display: 'none' }}
                                                                         ref={this.fileInputRed}
-                                                                        onChange={this.handleFileSelect}
+                                                                        onChange={(event) => {
+                                                                              this.handleFileSelect(event)
+                                                                              this.handleFocusTextFiled()
+                                                                        }}
 
                                                                   />
                                                             </Grid>
@@ -249,17 +257,29 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                             <TextField
                                                                   onKeyPress={(e: any) => {
                                                                         if (e.key === 'Enter') {
-                                                                              this.onSendMessageFile()
+                                                                              this.onSendMessage('send_image')
                                                                         }
                                                                   }}
-
                                                                   InputProps={{
                                                                         startAdornment: (
-                                                                              <img
-                                                                                    src={this.state.img}
-                                                                                    alt="Selected Image"
-                                                                                    style={{ height: '100px', objectFit: 'scale-down' }}
-                                                                              />
+                                                                              this.state.img.map((value, index) =>
+                                                                                    <>
+
+                                                                                          <img
+                                                                                                src={value.urlImage}
+                                                                                                alt="Selected Image"
+                                                                                                style={{ height: '100px', objectFit: 'scale-down', marginLeft: 5 }}
+                                                                                          />
+                                                                                          <ButtonBase
+                                                                                                onClick={() => this.setState({ img: this.state.img.filter(x => x !== value) })}
+                                                                                                style={{ marginBottom: 50, marginLeft: 2 }}
+                                                                                          >
+                                                                                                <HighlightOffIcon />
+                                                                                          </ButtonBase>
+
+                                                                                    </>
+                                                                              )
+
                                                                         ),
                                                                   }}
                                                                   onChange={(e: any) => this.setState({
@@ -268,10 +288,8 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                                               boxChatId: this.state.boxChatCurrent.id,
                                                                               content: e.currentTarget.value,
                                                                               createAt: new Date(),
-                                                                              pathImg:''
                                                                         }
                                                                   })}
-
                                                                   onFocus={this.handleFocusTextFiled}
                                                                   inputRef={this.textFieldRef}
 
@@ -281,7 +299,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                             <TextField
                                                                   onKeyPress={(e: any) => {
                                                                         if (e.key === 'Enter') {
-                                                                              this.onSendMessage()
+                                                                              this.onSendMessage('send_text')
                                                                         }
                                                                   }}
 
@@ -347,7 +365,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
                                                       </Box>
-                                                </Box>
+                                                </Box >
                                           </>) :
                                           <Box marginX='30%' marginY='20%' borderRadius={4} sx={{ background: 'hsl(120, 100%, 91%)' }} width='30%' display='flex' height='7%' alignItems='center' justifyContent='center'>
 
@@ -381,32 +399,83 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
             })
       }
-      private onSendMessage = async () => {
+      private onSendMessage = async (key: string) => {
 
-
-            if (this.state.newMessage.content.length === 0) {
-                  return
-            }
-            const message: MessageDetail = {
-                  ...this.state.newMessage,
-                  boxChatId: this.state.boxChatCurrent.id,
-                  from: this.props.appState.userCurrent.id ?? '',
-                  to: this.state.userChattingId
-
-            }
-            this.props.appState.socket.emit('send-message', message, (data: any) => {
-
-                  if (!data || data === 'error') {
-                        toastError('Gửi tin nhắn thất bại')
+            if (key === 'send_text') {
+                  if (this.state.newMessage.content.length === 0) {
                         return
                   }
+                  const message: MessageDetail = {
+                        ...this.state.newMessage,
+                        boxChatId: this.state.boxChatCurrent.id,
+                        from: this.props.appState.userCurrent.id ?? '',
+                        to: this.state.userChattingId
+
+                  }
+                  this.props.appState.socket.emit('send-message', message, (data: any) => {
+
+                        if (!data || data === 'error') {
+                              toastError('Gửi tin nhắn thất bại')
+                              return
+                        }
 
 
-                  this.setState({
-                        newMessage: MessageDetail.createObj(),
-                        historyMessage: data as Array<MessageDetail>
+                        this.setState({
+                              newMessage: MessageDetail.createObj({
+                                    boxChatId: this.state.newMessage.boxChatId,
+                                    from: this.state.newMessage.from,
+                                    to: this.state.newMessage.to
+                              }),
+                              historyMessage: data as Array<MessageDetail>
+                        })
                   })
-            })
+
+            }
+            if (key === 'send_image') {
+
+                  const message: MessageDetail = {
+                        ...this.state.newMessage,
+                        boxChatId: this.state.boxChatCurrent.id,
+                        from: this.props.appState.userCurrent.id ?? '',
+                        to: this.state.userChattingId
+
+                  }
+                  let files: any = []
+                  this.state.img.forEach((value, index) => {
+                        files.push(value.formData)
+                  })
+                  const formData = new FormData();
+                  for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        formData.append('files', file);
+                  }
+                  formData.append('body', JSON.stringify(message))
+                  const sendImage = await Axios.post('http://localhost:3001/image', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data', }
+                  })
+                  console.log(sendImage.data);
+                  
+
+                  // this.props.appState.socket.emit('send-message', {}, (data: any) => {
+
+                  //       if (!data || data === 'error') {
+                  //             toastError('Gửi tin nhắn thất bại')
+                  //             return
+                  //       }
+
+
+                  //       this.setState({
+                  //             newMessage: MessageDetail.createObj({
+                  //                   boxChatId: this.state.newMessage.boxChatId,
+                  //                   from: this.state.newMessage.from,
+                  //                   to: this.state.newMessage.to
+                  //             }),
+                  //             historyMessage: data as Array<MessageDetail>
+                  //       })
+                  // })
+
+
+            }
 
       }
 
@@ -430,38 +499,20 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                   type: TypeMessage.Image,
                   from: this.props.appState.userCurrent.id ?? ''
             }
-            const reader = new FileReader()
-
-            reader.onload = (event: any) => {
-                  const fileData = event.target.result;
-                  const fileName = file.name;
-                  const payload = {
-                        message: newMessage,
-                        fileName,
-                        fileData
-                  }
+            const formData = new FormData()
+            formData.append('files', file)
+            const fileUrl = URL.createObjectURL(file)
+            this.setState({
+                  img: [...this.state.img, { formData: file, urlImage: fileUrl }],
+                  newMessage: { ...this.state.newMessage, type: TypeMessage.Image }
+            })
 
 
-                  this.setState({ img: fileData,newMessage: {...this.state.newMessage,type: TypeMessage.Image} })
-                 
-            }
-            reader.readAsDataURL(file)
 
 
 
       };
-       private onSendMessageFile = () => {
 
-            const payload = {
-                  message: this.state.newMessage,
-                  fileData:this.state.img,
-                  fileName: '2'
-            }
-            this.props.appState.socket.emit('upload-image', payload, (data: any) => {
-                  console.log(data);
-
-            })
-       }
       private handleFocusTextFiled = () => {
             const input = this.textFieldRef.current;
 
