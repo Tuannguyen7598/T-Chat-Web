@@ -446,8 +446,10 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                   })
                   const formData = new FormData();
                   for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        formData.append('files', file);
+                        let file = files[i];
+                      
+                      
+                        formData.append('files',file);
                   }
                   formData.append('body', JSON.stringify(message))
                   const sendImage = await Axios.post('http://localhost:3001/image', formData, {
