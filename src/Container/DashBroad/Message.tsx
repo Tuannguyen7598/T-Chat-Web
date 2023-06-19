@@ -13,6 +13,7 @@ import Axios from 'axios';
 import React from "react";
 import EmojiPicker, { emojiList } from '../../Component/Emoji';
 import { Header } from "../../Component/Header";
+import { MessageBoxChat } from '../../Component/Message';
 import { Navigation } from '../../Component/Navigation';
 import { toastError } from '../../Component/ToastMessage';
 import { IPageProps, connectContainer } from "../../ContainerBase";
@@ -216,7 +217,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                       </Box>
                                                 </Box>
 
-                                                <Box component={Container} height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
+                                                <Box component={Container}  height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
                                                       <Grid container width='100%' height='50%' style={{ display: 'flex', height: '20%' }} >
                                                             <Grid item xs mt={1}>
                                                                   <ButtonBase disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
@@ -327,37 +328,27 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                       <Box display='flex' height='70%' flexDirection='column-reverse' alignItems='center' overflow='auto'>
                                                             {this.state.historyMessage.map((message, index) => {
                                                                   if (message.isSeen && count === index && message.from === this.props.appState.userCurrent.id) {
-
-                                                                        return <>
-                                                                              <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' ><Avatar
-                                                                                    style={{ height: '15px', width: '15px' }}
-                                                                                    src='' /></Box>
-                                                                              <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' mb={1}>
-
-                                                                                    <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
-                                                                                          <Typography typography='h5'>{message.content}11221</Typography>
-                                                                                    </Box>
-
-                                                                              </Box>
-
-                                                                        </>
+                                                                        return <MessageBoxChat
+                                                                              message={message}
+                                                                              isBoxChatOwner={true}
+                                                                              loactionSeen={true}
+                                                                        />
                                                                   }
                                                                   if (message.from === this.props.appState.userCurrent.id) {
                                                                         if (!message.isSeen) {
                                                                               count++
                                                                         }
-                                                                        return <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' mb={2}>
-                                                                              <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
-                                                                                    <Typography typography='h5'>{message.content}</Typography>
-                                                                              </Box>
-
-                                                                        </Box>
+                                                                        return <MessageBoxChat
+                                                                              message={message}
+                                                                              isBoxChatOwner={true}
+                                                                              loactionSeen={false}
+                                                                        />
                                                                   }
-                                                                  return <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-start' mb={2}>
-                                                                        <Box height='100%' minWidth='5%' maxWidth='30%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
-                                                                              <Typography typography='h5'>{message.content}</Typography>
-                                                                        </Box>
-                                                                  </Box>
+                                                                  return <MessageBoxChat
+                                                                        message={message}
+                                                                        isBoxChatOwner={false}
+                                                                        loactionSeen={false}
+                                                                  />
 
 
                                                             })}
@@ -421,6 +412,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
                         this.setState({
+                              img:[],
                               newMessage: MessageDetail.createObj({
                                     boxChatId: this.state.newMessage.boxChatId,
                                     from: this.state.newMessage.from,
@@ -447,34 +439,35 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                   const formData = new FormData();
                   for (let i = 0; i < files.length; i++) {
                         let file = files[i];
-                      
-                      
-                        formData.append('files',file);
+
+
+                        formData.append('files', file);
                   }
                   formData.append('body', JSON.stringify(message))
                   const sendImage = await Axios.post('http://localhost:3001/image', formData, {
                         headers: { 'Content-Type': 'multipart/form-data', }
                   })
-                  console.log(sendImage.data);
-                  
-
-                  // this.props.appState.socket.emit('send-message', {}, (data: any) => {
-
-                  //       if (!data || data === 'error') {
-                  //             toastError('Gửi tin nhắn thất bại')
-                  //             return
-                  //       }
 
 
-                  //       this.setState({
-                  //             newMessage: MessageDetail.createObj({
-                  //                   boxChatId: this.state.newMessage.boxChatId,
-                  //                   from: this.state.newMessage.from,
-                  //                   to: this.state.newMessage.to
-                  //             }),
-                  //             historyMessage: data as Array<MessageDetail>
-                  //       })
-                  // })
+
+                  this.props.appState.socket.emit('send-message', message, (data: any) => {
+
+                        if (!data || data === 'error') {
+                              toastError('Gửi tin nhắn thất bại')
+                              return
+                        }
+
+
+                        this.setState({
+                              img:[],
+                              newMessage: MessageDetail.createObj({
+                                    boxChatId: this.state.newMessage.boxChatId,
+                                    from: this.state.newMessage.from,
+                                    to: this.state.newMessage.to
+                              }),
+                              historyMessage: data as Array<MessageDetail>
+                        })
+                  })
 
 
             }
