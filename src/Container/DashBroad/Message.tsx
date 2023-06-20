@@ -20,6 +20,7 @@ import { IPageProps, connectContainer } from "../../ContainerBase";
 import { ClientRouter, ServerRouter } from '../../Routers';
 import { UserDto } from '../../type';
 import { BoxChatPersonal, MessageDetail, TypeMessage } from '../../type/message.interface';
+import { saveAs } from 'file-saver';
 export interface Image {
       urlImage: any
       formData: any
@@ -217,13 +218,13 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                       </Box>
                                                 </Box>
 
-                                                <Box component={Container}  height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
+                                                <Box component={Container} height='100%' style={{ display: 'flex', flexDirection: 'column-reverse', }}>
                                                       <Grid container width='100%' height='50%' style={{ display: 'flex', height: '20%' }} >
                                                             <Grid item xs mt={1}>
                                                                   <ButtonBase disableTouchRipple ><AttachFileIcon style={{ width: '50px' }} /></ButtonBase>
                                                                   <ButtonBase disableTouchRipple><ShareIcon style={{ width: '50px' }} /></ButtonBase>
-                                                                  <ButtonBase disableTouchRipple><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
-                                                                  <ButtonBase onClick={this.handleButtonClick} disableTouchRipple><ImageIcon style={{ width: '50px' }} />
+                                                                  <ButtonBase disableTouchRipple onClick={this.handleClickUploadImage} ><UploadFileIcon style={{ width: '50px' }} /></ButtonBase>
+                                                                  <ButtonBase onClick={this.handleClickUploadImage} disableTouchRipple><ImageIcon style={{ width: '50px' }} />
                                                                   </ButtonBase>
                                                                   <ButtonBase onClick={this.handleFocusTextFiled} disableTouchRipple><EmojiPicker
                                                                         onClose={() => this.handleFocusTextFiled}
@@ -332,6 +333,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                                               message={message}
                                                                               isBoxChatOwner={true}
                                                                               loactionSeen={true}
+                                                                              onDownload={(link: string) => this.downloadImage(link)}
                                                                         />
                                                                   }
                                                                   if (message.from === this.props.appState.userCurrent.id) {
@@ -342,12 +344,14 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                                               message={message}
                                                                               isBoxChatOwner={true}
                                                                               loactionSeen={false}
+                                                                              onDownload={(link: string) => this.downloadImage(link)}
                                                                         />
                                                                   }
                                                                   return <MessageBoxChat
                                                                         message={message}
                                                                         isBoxChatOwner={false}
                                                                         loactionSeen={false}
+                                                                        onDownload={(link: string) => this.downloadImage(link)}
                                                                   />
 
 
@@ -359,7 +363,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
                                                 </Box >
                                           </>) :
                                           <Box marginX='30%' marginY='20%' borderRadius={4} sx={{ background: 'hsl(120, 100%, 91%)' }} width='30%' display='flex' height='7%' alignItems='center' justifyContent='center'>
-
+                                                Please click one user to start chat
                                           </Box>
 
                                     }
@@ -412,7 +416,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
                         this.setState({
-                              img:[],
+                              img: [],
                               newMessage: MessageDetail.createObj({
                                     boxChatId: this.state.newMessage.boxChatId,
                                     from: this.state.newMessage.from,
@@ -459,7 +463,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
                         this.setState({
-                              img:[],
+                              img: [],
                               newMessage: MessageDetail.createObj({
                                     boxChatId: this.state.newMessage.boxChatId,
                                     from: this.state.newMessage.from,
@@ -507,7 +511,21 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
 
 
       };
-
+      private downloadImage(imageUrl: string) {
+            // Tạo một thẻ a ẩn
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', imageUrl, true);
+            xhr.responseType = 'blob';
+        
+            xhr.onload = function () {
+              if (xhr.status === 200) {
+                const blob = new Blob([xhr.response], { type: 'image/jpeg' });
+                saveAs(blob, 'image.jpg');
+              }
+            };
+        
+            xhr.send();
+      }
       private handleFocusTextFiled = () => {
             const input = this.textFieldRef.current;
 
@@ -518,7 +536,7 @@ export class MessageRaw extends React.Component<IPageProps, IState> {
             input.focus();
       };
 
-      private handleButtonClick = () => {
+      private handleClickUploadImage = () => {
             this.fileInputRed.current.click();
       };
 }

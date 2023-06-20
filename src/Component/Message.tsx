@@ -5,6 +5,7 @@ export interface Prop {
     message: MessageDetail,
     isBoxChatOwner: boolean
     loactionSeen: boolean
+    onDownload: (link: string) => void
 }
 
 export const MessageBoxChat = (prop: Prop): JSX.Element => {
@@ -32,12 +33,14 @@ export const MessageBoxChat = (prop: Prop): JSX.Element => {
                         prop.message.type === TypeMessage.Image ?
                             <Box minHeight='20%' width='100%' display='flex' alignItems='center' justifyContent='flex-end' mb={1} mt={1}>
 
-                                <Box height='100%' minWidth='5%' maxWidth='100%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
+                                <Box height='100%' minWidth='5%' maxWidth='100%' borderRadius={2} display='table-row' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
                                     {prop.message.pathImg.map((x) =>
-                                        <img
-                                        src={x}
-                                        height={100}
-                                        />
+                                            <img
+                                                src={x}
+                                                height={100}
+                                                onClick={() => prop.onDownload(x)}
+                                            />
+                                       
                                     )}
                                     <Typography typography='h5'>{prop.message.content}</Typography>
                                 </Box>
@@ -47,7 +50,7 @@ export const MessageBoxChat = (prop: Prop): JSX.Element => {
                     }
                 </> :
                 <>
-                   
+
                     {prop.message.type === TypeMessage.Text ?
                         <Box minHeight='5%' width='100%' display='flex' alignItems='center' justifyContent='flex-start' mb={1} mt={1}>
 
@@ -62,10 +65,12 @@ export const MessageBoxChat = (prop: Prop): JSX.Element => {
 
                                 <Box height='100%' minWidth='5%' maxWidth='100%' borderRadius={2} display='flex' alignItems='center' p='8px' sx={{ background: 'hsl(214, 100%, 91%)' }}>
                                     {prop.message.pathImg.map((x) =>
-                                        <img
-                                        src={x}
-                                        height={100}
-                                        />
+                                       
+                                            <img
+                                                src={x}
+                                                height={100}
+                                            />
+                                       
                                     )}
                                     <Typography typography='h5'>{prop.message.content}</Typography>
                                 </Box>
